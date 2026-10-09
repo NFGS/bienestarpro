@@ -1,0 +1,16 @@
+@startuml dcu-m10
+left to right direction
+skinparam packageStyle rectangle
+title DCU-M10 — Contactos de emergencia
+
+actor "Coordinación\nBienestar" as CB
+
+package "M10 Contactos de emergencia" {
+  usecase "CU-23\nRegistrar contactos de emergencia" as CU23
+  usecase "CU-24\nConsultar contactos de emergencia" as CU24
+}
+
+CB --> CU23
+CB --> CU24
+
+@enduml

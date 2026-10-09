@@ -1,0 +1,24 @@
+@startuml dcu-m6
+left to right direction
+skinparam packageStyle rectangle
+title DCU-M6 — Noticias y campañas
+
+actor "Coordinación\nBienestar" as CB
+
+package "M6 Noticias y campañas" {
+  usecase "CU-25\nPublicar noticia o campaña" as CU25
+  usecase "CU-26\nConsultar analítica de campañas" as CU26
+}
+
+usecase "CU-18\nEnviar notificación multicanal" as CU18
+
+CB --> CU25
+CB --> CU26
+CU25 ..> CU18 : <<include>>
+
+note right of CU18
+  Caso de uso externo (módulo M2).
+  Ver diagrama 2.4.
+end note
+
+@enduml

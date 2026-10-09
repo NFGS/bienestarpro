@@ -1,0 +1,123 @@
+@startuml dcu-general
+left to right direction
+skinparam packageStyle rectangle
+skinparam defaultTextAlignment center
+title DCU-01 — Vista general: BienestarPro (36 CU en 9 módulos del piloto)
+
+actor "Usuario" as U
+actor "Superadmin" as SA
+actor "Coordinación\nBienestar" as CB
+actor "Auxiliar\nBienestar" as AB
+actor "Instructor" as INS
+actor "Aprendiz" as APR
+actor "Cafetería" as CAF
+actor "Sistema" as SIS
+
+package "M4 Administración" {
+  usecase "CU-01\nIniciar sesión" as CU01
+  usecase "CU-02\nGestionar usuarios y roles" as CU02
+  usecase "CU-03\nAdministrar centros" as CU03
+  usecase "CU-04\nConsultar auditoría" as CU04
+  usecase "CU-05\nConfigurar segundo factor" as CU05
+}
+
+package "M9 Fichas por jornada" {
+  usecase "CU-06\nGestionar programas y fichas" as CU06
+  usecase "CU-07\nGestionar aprendices e instructores" as CU07
+  usecase "CU-08\nConsultar directorio de fichas" as CU08
+  usecase "CU-09\nGestionar consentimientos" as CU09
+}
+
+package "M1 Refrigerios" {
+  usecase "CU-10\nCrear evento de refrigerio" as CU10
+  usecase "CU-11\nConvocar aprendices" as CU11
+  usecase "CU-12\nConfirmar asistencia" as CU12
+  usecase "CU-13\nAjustar cupos" as CU13
+  usecase "CU-14\nRegistrar entrega de refrigerio" as CU14
+  usecase "CU-15\nGenerar consolidado para cafetería" as CU15
+  usecase "CU-16\nCerrar evento de refrigerio" as CU16
+  usecase "CU-17\nConsultar historial de entregas" as CU17
+}
+
+package "M2 Notificaciones" {
+  usecase "CU-18\nEnviar notificación multicanal" as CU18
+  usecase "CU-19\nGestionar plantillas de mensajes" as CU19
+  usecase "CU-20\nConfigurar preferencias de notificación" as CU20
+  usecase "CU-21\nConsultar acuses de entrega" as CU21
+  usecase "CU-22\nProgramar recordatorios de evento" as CU22
+}
+
+package "M10 Contactos de emergencia" {
+  usecase "CU-23\nRegistrar contactos de emergencia" as CU23
+  usecase "CU-24\nConsultar contactos de emergencia" as CU24
+}
+
+package "M6 Noticias y campañas" {
+  usecase "CU-25\nPublicar noticia o campaña" as CU25
+  usecase "CU-26\nConsultar analítica de campañas" as CU26
+}
+
+package "M7 Encuestas" {
+  usecase "CU-27\nCrear encuesta" as CU27
+  usecase "CU-28\nAplicar encuesta" as CU28
+  usecase "CU-29\nConsultar resultados de encuesta" as CU29
+}
+
+package "M8 Reuniones y agenda" {
+  usecase "CU-30\nAgendar reunión" as CU30
+  usecase "CU-31\nGestionar confirmaciones de reunión" as CU31
+  usecase "CU-32\nEnviar recordatorios de reunión" as CU32
+  usecase "CU-33\nRegistrar acta de reunión" as CU33
+}
+
+package "M5 Informes" {
+  usecase "CU-34\nGenerar planilla de entrega exportable" as CU34
+  usecase "CU-35\nGenerar informe consolidado periódico" as CU35
+  usecase "CU-36\nConsultar tablero de indicadores" as CU36
+}
+
+U --> CU01
+U --> CU05
+U --> CU20
+SA --> CU02
+SA --> CU03
+SA --> CU04
+CB --> CU06
+CB --> CU07
+CB --> CU09
+CB --> CU10
+CB --> CU16
+CB --> CU19
+CB --> CU21
+CB --> CU22
+CB --> CU23
+CB --> CU24
+CB --> CU25
+CB --> CU26
+CB --> CU27
+CB --> CU29
+CB --> CU30
+CB --> CU33
+CB --> CU34
+CB --> CU35
+CB --> CU36
+AB --> CU13
+AB --> CU14
+INS --> CU08
+INS --> CU31
+APR --> CU12
+APR --> CU17
+APR --> CU28
+CAF --> CU15
+SIS --> CU11
+SIS --> CU18
+SIS --> CU32
+
+CU11 ..> CU18 : <<include>>
+CU22 ..> CU18 : <<include>>
+CU25 ..> CU18 : <<include>>
+CU30 ..> CU18 : <<include>>
+CU32 ..> CU18 : <<include>>
+CU13 ..> CU10 : <<extend>>
+
+@enduml

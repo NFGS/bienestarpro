@@ -1,0 +1,32 @@
+@startuml dcu-m2
+left to right direction
+skinparam packageStyle rectangle
+title DCU-M2 — Notificaciones
+
+actor "Usuario" as U
+actor "Coordinación\nBienestar" as CB
+actor "Sistema" as SIS
+
+package "M2 Notificaciones" {
+  usecase "CU-18\nEnviar notificación multicanal" as CU18
+  usecase "CU-19\nGestionar plantillas de mensajes" as CU19
+  usecase "CU-20\nConfigurar preferencias de notificación" as CU20
+  usecase "CU-21\nConsultar acuses de entrega" as CU21
+  usecase "CU-22\nProgramar recordatorios de evento" as CU22
+}
+
+U --> CU20
+CB --> CU19
+CB --> CU21
+CB --> CU22
+SIS --> CU18
+
+note bottom of CU18
+  Incluido por: CU-11 (convocar), CU-22
+  (recordatorios de evento), CU-25
+  (publicar campaña), CU-30 (agendar
+  reunión) y CU-32 (recordatorios de
+  reunión). Ver diagrama general.
+end note
+
+@enduml

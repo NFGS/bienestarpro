@@ -1,0 +1,42 @@
+@startuml dcu-m1
+left to right direction
+skinparam packageStyle rectangle
+title DCU-M1 — Refrigerios
+
+actor "Coordinación\nBienestar" as CB
+actor "Auxiliar\nBienestar" as AB
+actor "Aprendiz" as APR
+actor "Cafetería" as CAF
+actor "Sistema" as SIS
+
+package "M1 Refrigerios" {
+  usecase "CU-10\nCrear evento de refrigerio" as CU10
+  usecase "CU-11\nConvocar aprendices" as CU11
+  usecase "CU-12\nConfirmar asistencia" as CU12
+  usecase "CU-13\nAjustar cupos" as CU13
+  usecase "CU-14\nRegistrar entrega de refrigerio" as CU14
+  usecase "CU-15\nGenerar consolidado para cafetería" as CU15
+  usecase "CU-16\nCerrar evento de refrigerio" as CU16
+  usecase "CU-17\nConsultar historial de entregas" as CU17
+}
+
+usecase "CU-18\nEnviar notificación multicanal" as CU18
+
+CB --> CU10
+CB --> CU16
+AB --> CU13
+AB --> CU14
+APR --> CU12
+APR --> CU17
+CAF --> CU15
+SIS --> CU11
+
+CU13 ..> CU10 : <<extend>>
+CU11 ..> CU18 : <<include>>
+
+note right of CU18
+  Caso de uso externo (módulo M2).
+  Ver diagrama 2.4.
+end note
+
+@enduml

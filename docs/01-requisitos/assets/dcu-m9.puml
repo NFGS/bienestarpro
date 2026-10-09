@@ -1,0 +1,21 @@
+@startuml dcu-m9
+left to right direction
+skinparam packageStyle rectangle
+title DCU-M9 — Fichas por jornada
+
+actor "Coordinación\nBienestar" as CB
+actor "Instructor" as INS
+
+package "M9 Fichas por jornada" {
+  usecase "CU-06\nGestionar programas y fichas" as CU06
+  usecase "CU-07\nGestionar aprendices e instructores" as CU07
+  usecase "CU-08\nConsultar directorio de fichas" as CU08
+  usecase "CU-09\nGestionar consentimientos" as CU09
+}
+
+CB --> CU06
+CB --> CU07
+CB --> CU09
+INS --> CU08
+
+@enduml

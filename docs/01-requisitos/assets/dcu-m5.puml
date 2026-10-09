@@ -1,0 +1,18 @@
+@startuml dcu-m5
+left to right direction
+skinparam packageStyle rectangle
+title DCU-M5 — Informes
+
+actor "Coordinación\nBienestar" as CB
+
+package "M5 Informes" {
+  usecase "CU-34\nGenerar planilla de entrega exportable" as CU34
+  usecase "CU-35\nGenerar informe consolidado periódico" as CU35
+  usecase "CU-36\nConsultar tablero de indicadores" as CU36
+}
+
+CB --> CU34
+CB --> CU35
+CB --> CU36
+
+@enduml

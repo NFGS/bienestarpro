@@ -1,0 +1,19 @@
+@startuml dcu-m7
+left to right direction
+skinparam packageStyle rectangle
+title DCU-M7 — Encuestas
+
+actor "Coordinación\nBienestar" as CB
+actor "Aprendiz" as APR
+
+package "M7 Encuestas" {
+  usecase "CU-27\nCrear encuesta" as CU27
+  usecase "CU-28\nAplicar encuesta" as CU28
+  usecase "CU-29\nConsultar resultados de encuesta" as CU29
+}
+
+CB --> CU27
+CB --> CU29
+APR --> CU28
+
+@enduml

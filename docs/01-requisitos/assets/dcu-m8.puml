@@ -1,0 +1,32 @@
+@startuml dcu-m8
+left to right direction
+skinparam packageStyle rectangle
+title DCU-M8 — Reuniones y agenda
+
+actor "Coordinación\nBienestar" as CB
+actor "Instructor" as INS
+actor "Sistema" as SIS
+
+package "M8 Reuniones y agenda" {
+  usecase "CU-30\nAgendar reunión" as CU30
+  usecase "CU-31\nGestionar confirmaciones de reunión" as CU31
+  usecase "CU-32\nEnviar recordatorios de reunión" as CU32
+  usecase "CU-33\nRegistrar acta de reunión" as CU33
+}
+
+usecase "CU-18\nEnviar notificación multicanal" as CU18
+
+CB --> CU30
+CB --> CU33
+INS --> CU31
+SIS --> CU32
+
+CU30 ..> CU18 : <<include>>
+CU32 ..> CU18 : <<include>>
+
+note right of CU18
+  Caso de uso externo (módulo M2).
+  Ver diagrama 2.4.
+end note
+
+@enduml

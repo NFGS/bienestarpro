@@ -1,0 +1,80 @@
+@startuml dcu-general-b
+left to right direction
+skinparam packageStyle rectangle
+title DCU-01B — Vista general: comunicación y servicios
+
+actor "Usuario" as U
+actor "Coordinación\nBienestar" as CB
+actor "Instructor" as INS
+actor "Aprendiz" as APR
+actor "Sistema" as SIS
+
+package "M2 Notificaciones" {
+  usecase "CU-18\nEnviar notificación multicanal" as CU18
+  usecase "CU-19\nGestionar plantillas de mensajes" as CU19
+  usecase "CU-20\nConfigurar preferencias de notificación" as CU20
+  usecase "CU-21\nConsultar acuses de entrega" as CU21
+  usecase "CU-22\nProgramar recordatorios de evento" as CU22
+}
+
+package "M10 Contactos de emergencia" {
+  usecase "CU-23\nRegistrar contactos de emergencia" as CU23
+  usecase "CU-24\nConsultar contactos de emergencia" as CU24
+}
+
+package "M6 Noticias y campañas" {
+  usecase "CU-25\nPublicar noticia o campaña" as CU25
+  usecase "CU-26\nConsultar analítica de campañas" as CU26
+}
+
+package "M7 Encuestas" {
+  usecase "CU-27\nCrear encuesta" as CU27
+  usecase "CU-28\nAplicar encuesta" as CU28
+  usecase "CU-29\nConsultar resultados de encuesta" as CU29
+}
+
+package "M8 Reuniones y agenda" {
+  usecase "CU-30\nAgendar reunión" as CU30
+  usecase "CU-31\nGestionar confirmaciones de reunión" as CU31
+  usecase "CU-32\nEnviar recordatorios de reunión" as CU32
+  usecase "CU-33\nRegistrar acta de reunión" as CU33
+}
+
+package "M5 Informes" {
+  usecase "CU-34\nGenerar planilla de entrega exportable" as CU34
+  usecase "CU-35\nGenerar informe consolidado periódico" as CU35
+  usecase "CU-36\nConsultar tablero de indicadores" as CU36
+}
+
+U --> CU20
+CB --> CU19
+CB --> CU21
+CB --> CU22
+CB --> CU23
+CB --> CU24
+CB --> CU25
+CB --> CU26
+CB --> CU27
+CB --> CU29
+CB --> CU30
+CB --> CU33
+CB --> CU34
+CB --> CU35
+CB --> CU36
+INS --> CU31
+APR --> CU28
+SIS --> CU18
+SIS --> CU32
+
+CU22 ..> CU18 : <<include>>
+CU25 ..> CU18 : <<include>>
+CU30 ..> CU18 : <<include>>
+CU32 ..> CU18 : <<include>>
+
+note bottom of CU18
+  También incluido por CU-11
+  (Convocar aprendices, módulo M1).
+  Ver diagrama 1.1.
+end note
+
+@enduml

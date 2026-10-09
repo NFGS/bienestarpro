@@ -1,0 +1,23 @@
+@startuml dcu-m4
+left to right direction
+skinparam packageStyle rectangle
+title DCU-M4 — Administración
+
+actor "Usuario" as U
+actor "Superadmin" as SA
+
+package "M4 Administración" {
+  usecase "CU-01\nIniciar sesión" as CU01
+  usecase "CU-02\nGestionar usuarios y roles" as CU02
+  usecase "CU-03\nAdministrar centros" as CU03
+  usecase "CU-04\nConsultar auditoría" as CU04
+  usecase "CU-05\nConfigurar segundo factor" as CU05
+}
+
+U --> CU01
+U --> CU05
+SA --> CU02
+SA --> CU03
+SA --> CU04
+
+@enduml
