@@ -48,8 +48,9 @@ Se adopta **Open Notebook** como motor de investigación, con estas reglas:
 
 - Dependencia de un proveedor externo para el chat: límites de uso y caída del servicio (hoy ya se observó saturación de un modelo). Mitigación: tener más de un modelo registrado y reintentar.
 - Los archivos huérfanos acumulan espacio (ya había 44 archivos, ~87 MB, de fuentes borradas). Mitigación: limpieza manual y solo con verificación previa de que la fuente ya no existe.
-- El despliegue depende de una imagen local parcheada que no está en ningún registro: si se pierde, hay que reconstruirla. Mitigación: documentar el parche antes de actualizar la imagen.
-- Activo crítico concentrado en dos directorios de una sola máquina. Mitigación: procedimiento de respaldo documentado (tar de `notebook_data` y `surreal_data`).
+- El despliegue depende de una imagen local parcheada que no está en ningún registro: si se pierde, hay que reconstruirla. Mitigación: el respaldo incluye la propia imagen (`docker save`), porque el código del parche ya no existe en disco.
+- Activo crítico concentrado en dos directorios de una sola máquina. Mitigación **implementada**: respaldo automático diario a las 02:30, verificado y con copia de la imagen; los respaldos quedan en el mismo disco, así que falta copiar a un soporte externo cuando el corpus crezca.
+- Recrear el despliegue puede fallar por detalles invisibles en los contenedores originales (contenedor de base creado sin etiquetas de compose; usuario por defecto de la imagen incompatible con los permisos de los datos). Mitigación: ciclo de recreación documentado y probado el 2026-10-09.
 
 ## Verificación
 

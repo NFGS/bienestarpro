@@ -20,6 +20,13 @@ services:
     image: surrealdb/surrealdb:v2
     container_name: open-notebook-surrealdb-1
     restart: always
+    # El despliegue original corría SurrealDB como root, y ./surreal_data es de
+    # root en el host. La imagen usa por defecto el usuario 65532 y con los datos
+    # en un bind mount falla al arrancar:
+    #   IO error: While renaming a /mydata/mydatabase.db/LOG.old.*: Permission denied
+    # Se fija root para reproducir el comportamiento real. (Alternativa futura:
+    # chmod/chown del directorio al UID correcto y quitar esta línea.)
+    user: "0:0"
     environment:
       SURREAL_USER: "${SURREAL_USER:?falta SURREAL_USER en .env}"
       SURREAL_PASSWORD: "${SURREAL_PASSWORD:?falta SURREAL_PASSWORD en .env}"

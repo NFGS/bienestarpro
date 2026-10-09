@@ -64,3 +64,30 @@ El criterio de aceptación del paso 0.5 queda cumplido: **búsqueda vectorial op
 ## 8. Ver también
 
 - Operación y mantenimiento: [`docs/02-arquitectura/open-notebook-motor-investigacion.md`](../02-arquitectura/open-notebook-motor-investigacion.md)
+
+## 9. Verificación del despliegue reconstruido (2026-10-09)
+
+Se reconstruyeron los `docker-compose.yml` ausentes y se probó el ciclo completo de recreación, lo que reveló dos fallos que solo aparecen al recrear:
+
+| Hallazgo | Causa | Resolución |
+|---|---|---|
+| `Conflict: container name already in use` | El contenedor de SurrealDB se había creado con `docker run` (sin etiquetas de compose), por lo que Docker no lo reconocía como parte del proyecto | `docker stop` + `docker rename` (el antiguo queda como `open-notebook-surrealdb-legacy`, detenido y conservado) |
+| SurrealDB en bucle: `IO error ... Permission denied` al renombrar `LOG` de RocksDB | La imagen corre como usuario `65532` y `surreal_data` es de `root` en el host | `user: "0:0"` en el servicio `surrealdb` |
+
+**Bucle del worker por comandos huérfanos:** la detección inicial dio 0 huérfanos porque se consultó un `source_id` de primer nivel; la referencia real está en `args.source_id`. Con la definición correcta se detectaron **132 huérfanos** de fuentes borradas, se eliminaron y, tras reiniciar el worker (que conservaba la cola en memoria), los `NotFoundError` quedaron en **0**.
+
+**Evidencia de funcionamiento tras la recreación:**
+
+| Comprobación | Resultado |
+|---|---|
+| Contenedores | `open_notebook` y `surrealdb` en estado `healthy` |
+| API `/health` | HTTP 200 |
+| Persistencia de settings | `auto_delete_files=no`, `default_embedding_option=always` |
+| Persistencia de modelos | chat y embeddings intactos |
+| Datos | 16 fuentes en el cuaderno BienestarPro |
+| Búsqueda vectorial | similitud 0.637 / 0.600 / 0.578 (campo `similarity`, no `score`) |
+| Ask con citas | **Bloqueado**: Google AI rechaza la credencial (`invalid authentication credentials`) |
+
+**Pendiente:** renovar la clave de Google AI para recuperar el `ask` con citas. La recuperación por búsqueda vectorial no depende de esa clave (embeddings locales) y sigue operativa.
+
+**Respaldos:** programados diario a las 02:30, verificados en ejecución real (81 MB, 73 entradas, servicio repuesto en ~9 s) e incluyendo la imagen Docker parcheada (581 MB).
