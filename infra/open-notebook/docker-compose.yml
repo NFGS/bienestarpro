@@ -1,0 +1,90 @@
+# =============================================================================
+# Open Notebook — despliegue local de BienestarPro (SENNOVA / ADSO)
+#
+# Reconstruido el 2026-10-09 a partir del estado REAL de los contenedores en
+# ejecución (docker inspect), no de memoria. Validado con `docker compose config`.
+#
+#   Levantar     docker compose up -d
+#   Ver logs     docker compose logs -f open_notebook
+#   Detener      docker compose down        (los datos son bind mounts: NO se borran)
+#   Reiniciar    docker compose restart open_notebook
+#
+# SECRETOS: se leen de ./.env (permisos 600, generado desde el contenedor vivo).
+# Copia SIN secretos para el repositorio del proyecto: infra/open-notebook/
+# Decisiones y procedimientos operativos: MAINTENIMIENTO.md
+# =============================================================================
+name: open-notebook
+
+services:
+  surrealdb:
+    image: surrealdb/surrealdb:v2
+    container_name: open-notebook-surrealdb-1
+    restart: always
+    environment:
+      SURREAL_USER: "${SURREAL_USER:?falta SURREAL_USER en .env}"
+      SURREAL_PASSWORD: "${SURREAL_PASSWORD:?falta SURREAL_PASSWORD en .env}"
+      SURREAL_BIND: "${SURREAL_BIND:-0.0.0.0:8000}"
+    command:
+      - start
+      - --log
+      - info
+      - --user
+      - "${SURREAL_USER}"
+      - --pass
+      - "${SURREAL_PASSWORD}"
+      # Ubicación REAL de los datos (bind mount ./surreal_data). Los volúmenes
+      # anónimos /data y /logs que se declaran abajo existen en el despliegue
+      # original, pero la app no los usa: se conservan por fidelidad.
+      - rocksdb:/mydata/mydatabase.db
+    ports:
+      # Solo loopback: la base de datos nunca queda expuesta a la red local.
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - ./surreal_data:/mydata
+      - /data
+      - /logs
+    healthcheck:
+      test: ["CMD", "/surreal", "is-ready", "--endpoint", "http://127.0.0.1:8000"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    networks:
+      - open-notebook
+
+  open_notebook:
+    # Imagen LOCAL parcheada: no existe en ningún registro. No sustituir por
+    # ghcr.io/lfnovo/open-notebook sin revisar antes qué parche aplica.
+    image: open_notebook:kimi-patched
+    pull_policy: never
+    container_name: open-notebook-open_notebook-1
+    restart: always
+    # Red host: la app habla con SurrealDB en ws://localhost:8000 y expone la
+    # API (5055) y el frontend (8502) directamente en el host. Por eso no hay
+    # sección `ports` aquí: con host network Docker descarta ports publicados.
+    network_mode: host
+    depends_on:
+      surrealdb:
+        condition: service_healthy
+    environment:
+      # Clave de cifrado: sin ella las credenciales guardadas son inservibles.
+      OPEN_NOTEBOOK_ENCRYPTION_KEY: "${OPEN_NOTEBOOK_ENCRYPTION_KEY:?falta OPEN_NOTEBOOK_ENCRYPTION_KEY en .env}"
+      APP_PASSWORD: "${APP_PASSWORD:-}"
+      SURREAL_URL: "${SURREAL_URL:-ws://localhost:8000/rpc}"
+      SURREAL_USER: "${SURREAL_USER}"
+      SURREAL_PASSWORD: "${SURREAL_PASSWORD}"
+      SURREAL_NAMESPACE: "${SURREAL_NAMESPACE:-open_notebook}"
+      SURREAL_DATABASE: "${SURREAL_DATABASE:-open_notebook}"
+    volumes:
+      # Ajustes de la app, notas, imágenes y archivos subidos (/app/data/uploads).
+      - ./notebook_data:/app/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:5055/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+
+networks:
+  open-notebook:
+    driver: bridge

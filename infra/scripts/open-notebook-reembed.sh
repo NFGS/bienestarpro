@@ -16,12 +16,30 @@ set -uo pipefail
 
 API="${OPEN_NOTEBOOK_API:-http://localhost:5055}"
 NB="notebook:xdb7ojpts8f8mty0nltb"   # Notebook BienestarPro
-MODEL_STRATEGY="model:minimax_m3"
-MODEL_ANSWER="model:minimax_m3"
-MODEL_FINAL="model:qwen3_7_max"
 MODE="${1:-}"
 
+# Modelos de chat: se leen de la configuración vigente de Open Notebook.
+# Se evita fijarlos a mano porque un modelo puede quedar obsoleto (el gateway
+# anterior dejó de funcionar y dejó el script apuntando a modelos muertos).
+# Si no se puede leer, el script falla en vez de usar un modelo inválido.
+MODEL_STRATEGY="$(curl -s --max-time 20 "$API/api/models/defaults" | python3 -c '
+import sys, json
+try:
+    d = json.load(sys.stdin)
+    print(d.get("default_chat_model") or d.get("large_context_model") or "")
+except Exception:
+    print("")
+')"
+MODEL_ANSWER="$MODEL_STRATEGY"
+MODEL_FINAL="${MODEL_LARGE_CONTEXT:-$MODEL_STRATEGY}"
+if [ -z "$MODEL_STRATEGY" ]; then
+  echo "ERROR: no se pudo leer el modelo de chat vigente en $API/api/models/defaults." >&2
+  echo "       Revisa que Open Notebook esté arriba y que GET /api/models/defaults responda." >&2
+  exit 1
+fi
+
 log() { echo "[$(date '+%F %T')] $*"; }
+log "Modelos en uso: $MODEL_STRATEGY"
 
 pending_count() {
   curl -s --max-time 30 "$API/api/sources?notebook_id=$NB" 2>/dev/null | python3 -c "

@@ -55,6 +55,12 @@ El criterio de aceptación del paso 0.5 queda cumplido: **búsqueda vectorial op
 
 ## 7. Pendientes derivados
 
-- [ ] Re-carga de libros (el lote anterior fue eliminado desde la UI el 2026-10-08): definir plan con el usuario.
-- [ ] Evaluar `auto_delete_files=no` para conservar archivos subidos (recuperabilidad).
-- [ ] Regenerar los `docker-compose.yml` de Open Notebook (no presentes en `~/open-notebook/`).
+- [x] Re-carga de libros: el usuario los está subiendo en lotes pequeños (el lote anterior se eliminó desde la UI porque el proceso se bloqueó).
+- [x] Despliegue reconstruido y versionado sin secretos → ver [ADR-0014](../adr/ADR-0014-motor-investigacion-rag-open-notebook.md) y [`infra/open-notebook/`](../../infra/open-notebook/).
+- [x] `auto_delete_files=no` aplicado (conserva archivos para reprocesar sin volver a subir).
+- [ ] Copia de seguridad periódica de `notebook_data` y `surreal_data` (procedimiento documentado, aún no programado).
+- [ ] Documentar el parche de la imagen `open_notebook:kimi-patched` antes de actualizar la imagen base.
+
+## 8. Ver también
+
+- Operación y mantenimiento: [`docs/02-arquitectura/open-notebook-motor-investigacion.md`](../02-arquitectura/open-notebook-motor-investigacion.md)

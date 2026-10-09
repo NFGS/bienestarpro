@@ -22,6 +22,7 @@
 | ADR-0011 | Datos sensibles: contactos de emergencia y anonimato en encuestas | Decisión tomada — por redactar |
 | ADR-0012 | Integración de calendarios (Google Calendar / Microsoft Graph) | Diferida (Fase 5) |
 | ADR-0013 | Alcance del piloto: módulos completos y orden de construcción | Decisión tomada — por redactar |
+| ADR-0014 | Motor de investigación RAG local (Open Notebook) y política de conservación de archivos | Decisión tomada — redactada |
 
 ## Bitácora resumida (contexto de las decisiones)
 
@@ -33,3 +34,4 @@
 | 2026-10-08 | Piloto en capas gratuitas | Restricción de costo; migración a VPS documentada |
 | 2026-10-08 | Módulos completos desde el piloto | Decisión del cliente interno con mitigaciones (equipo + rebanadas verticales) |
 | 2026-10-08 | Embeddings locales (qwen3-embedding:0.6b); chat en nube | Hardware limitado (15 GB RAM, GPU AMD) |
+| 2026-10-09 | Motor de investigación: Open Notebook en Docker; embeddings locales, chat en Google AI | Corpus con licencia se mantiene local; gateway anterior incompatible (`MissingSessionID`) |

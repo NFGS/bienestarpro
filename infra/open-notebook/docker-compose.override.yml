@@ -1,0 +1,46 @@
+# =============================================================================
+# Open Notebook — override local
+#
+# El docker-compose.yml ya es Auto-contenido y reproduce fielmente el
+# despliegue actual (ver MAINTENIMIENTO.md). Este archivo existe para dejar
+# documentadas, comentadas y sin efecto, las variantes que podrías activar.
+#
+# Docker Compose carga SIEMPRE este archivo junto al principal. Si lo borras,
+# el servicio sigue igual; si lo editas, aplicas el cambio.
+#
+# --- Variante A: red bridge con puertos publicados ---------------------------
+# Útil si necesitas aislar la app en la red de Docker o servirla detrás de un
+# proxy inverso. Requiere cambiar SURREAL_URL a ws://surrealdb:8000/rpc.
+#
+# services:
+#   open_notebook:
+#     network_mode: !reset null
+#     ports:
+#       - "127.0.0.1:5055:5055"   # API
+#       - "127.0.0.1:8502:8502"   # interfaz web
+#     environment:
+#       SURREAL_URL: "ws://surrealdb:8000/rpc"
+#     depends_on:
+#       surrealdb:
+#         condition: service_healthy
+#
+# --- Variante B: datos en otra ruta ------------------------------------------
+# Útil si mueves el proyecto o usas un disco externo.
+#
+# services:
+#   open_notebook:
+#     volumes:
+#       - /ruta/absoluta/notebook_data:/app/data
+#   surrealdb:
+#     volumes:
+#       - /ruta/absoluta/surreal_data:/mydata
+#
+# --- Nota: ¡NO tocar ---------------------------------------------------------
+# - OPEN_NOTEBOOK_ENCRYPTION_KEY: cambiarla invalida todas las credenciales.
+# - APP_PASSWORD: es la contraseña de la interfaz; está en ./.env (600).
+# - La política de borrado de archivos NO se controla aquí (no existe variable
+#   de entorno): se cambia en caliente en Ajustes de la UI o por
+#   PUT http://localhost:5055/api/settings  {"auto_delete_files":"no"}
+#   (es PUT, no PATCH; y para embeber siempre: "always", no "yes").
+# =============================================================================
+services: {}
