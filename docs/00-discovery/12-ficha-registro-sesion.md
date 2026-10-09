@@ -21,9 +21,9 @@
 | Duración real | |
 | Modalidad (presencial/virtual) | |
 | Entrevistador / observador | |
-| Consentimiento informado firmado | Sí  · No  · No aplica (observación)  |
-| Autorización de representative legal (si hay menores) | Sí  · No aplica  |
-| ¿Se grabó? | Sí  (dónde se guarda: ________) · No  |
+| Consentimiento informado firmado | Sí ☐ · No ☐ · No aplica (observación) ☐ |
+| Autorización de representative legal (si hay menores) | Sí ☐ · No aplica ☐ |
+| ¿Se grabó? | Sí ☐ (dónde se guarda: ________) · No ☐ |
 | Lugazo | |
 
 **Objetivo de la sesión** (copiar del guion, sección del actor):
@@ -66,7 +66,7 @@ _(Resumen fiel, sin sintetizar. Tono del participante, frases textuales útiles,
 
 | ID | Tipo | Descripción / archivo | Origen | Ubicación o enlace | ¿Se puede adjuntar al informe? |
 |---|---|---|---|---|---|
-| EV-D-01 | Planilla / captura / foto / documento / audio | | | | Sí  · No (contiene datos personales)  |
+| EV-D-01 | Planilla / captura / foto / documento / audio | | | | Sí ☐ · No (contiene datos personales) ☐ |
 
 > Convención de nombres para archivos: `EV-D-<sesión>-<n>_<descripción>.<ext>` (ej. `EV-D-E1-01_plantilla_refrigerios.xlsx`).
 > **Ninguna evidencia con datos personales de aprendices se adjunta sin anonimizar.**
@@ -79,8 +79,8 @@ _(Resumen fiel, sin sintetizar. Tono del participante, frases textuales útiles,
 
 | ID | Área funcional | "¿El sistema debe…?" (una capacidad, un verbo) | Tipo | Dolor que resuelve | Evidencia | Estado |
 |---|---|---|---|---|---|---|
-| RC-01 | | | RF  RNF  | DOL-01 | EV-D-01 | Por confirmar  |
-| RC-02 | | | RF  RNF  | DOL-02 | | Por confirmar  |
+| RC-01 | | | RF ☐ RNF ☐ | DOL-01 | EV-D-01 | Por confirmar ☐ |
+| RC-02 | | | RF ☐ RNF ☐ | DOL-02 | | Por confirmar ☐ |
 
 ---
 

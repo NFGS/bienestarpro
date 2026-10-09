@@ -90,13 +90,13 @@ Desarrollar y validar una plataforma web (PWA) que automatice la asignación y e
 
 | Fase | Mes 1 | Mes 2 | Mes 3 | Mes 4 | Mes 5 | Mes 6 |
 |---|---|---|---|---|---|---|
-| 0. Discovery |  | | | | | |
-| 1. Requisitos + protocolo |  |  | | | | |
-| 2. Arquitectura + ADRs | |  | | | | |
-| 3. UX + validación | |  | | | | |
-| 4. Construcción + piloto | | |  |  |  | |
-| 5. Post-piloto (portátiles, IA) | | | | |  |  |
-| 6. Cierre + productos | | | | | |  |
+| 0. Discovery | ██ | | | | | |
+| 1. Requisitos + protocolo | ██ | ██ | | | | |
+| 2. Arquitectura + ADRs | | ██ | | | | |
+| 3. UX + validación | | ██ | | | | |
+| 4. Construcción + piloto | | | ██ | ██ | ██ | |
+| 5. Post-piloto (portátiles, IA) | | | | | ██ | ██ |
+| 6. Cierre + productos | | | | | | ██ |
 
 `[Fase 1 — ajustar a la duración real acordada con el grupo y al calendario académico ADSO]`
 
