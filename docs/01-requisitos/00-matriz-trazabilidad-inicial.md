@@ -67,3 +67,15 @@ EV-D-E1-03  →  DOL-01 (planilla se arma a mano)  →  RC-01  →  RF-01  →  
 3. Los identificadores no se reutilizan ni se renumeran (como en los ADR).
 4. Al cerrar la Fase 1, esta matriz se versiona como *matriz de trazabilidad ERS* y se liga a la matriz de pruebas.
 5. Cambio de alcance → nota en `docs/adr/` (decisión arquitectónica) antes que edición silenciosa de esta matriz.
+
+---
+
+## 7. Estado de la Fase 1 (borradores v0.1)
+
+| Artefacto | Archivo | Totales | Estado |
+|---|---|---|---|
+| ERS borrador | `01-ers-borrador-v0.1.md` | 42 RF, 12 RNF | Pendiente de validación con el discovery |
+| Casos de uso | `02-casos-de-uso.md` | 36 CU | Pendiente de validación con el discovery |
+| Historias de usuario | `03-historias-usuario.md` | 39 HU | Pendiente de validación con el discovery |
+
+Cadena de trazabilidad vigente: RF → CU → HU (tablas resumen en cada artefacto). Los requisitos se derivaron de `SPEC.md` v0.1 y de esta matriz; las sesiones de discovery pueden añadir, modificar o eliminar requisitos sin renumerar identificadores. Al cerrar la Fase 1, esta matriz se versiona como matriz de trazabilidad ERS y se liga a la matriz de pruebas.
