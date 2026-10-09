@@ -69,3 +69,33 @@ Entender el proceso real del área de Bienestar al Aprendiz, cuantificar el dolo
 | Baja disponibilidad de los actores | Entrevistas de máximo 45–60 min, agendadas con antelación |
 | Respuestas "políticas" sobre fallas del proceso | Garantizar confidencialidad y enfoque en el proceso, no en personas |
 | Datos sensibles expuestos | Consentimiento + agregación de datos |
+
+---
+
+## 8. Estado de avance
+
+**Estado de los artefactos (2026-10-09):**
+
+| Artefacto | Estado | Bloquea a |
+|---|---|---|
+| `00-plan-discovery.md` | Completo | — |
+| `01-guion-entrevistas.md` | Completo (9 actores) | — |
+| `02-plantilla-observacion.md` | Completo | — |
+| `03-inventario-documental.md` | Completo | — |
+| `04-as-is-refrigerios.md` | **Plantilla** — falta diligenciar con observación y entrevistas | Puntos de dolor y oportunidades → requisitos |
+| `05-baseline-metricas.md` | **Plantilla** — 17 métricas definidas, falta capturar valores | Justificación cuantificada del proyecto |
+| `06-acta-hallazgos.md` | **Plantilla** — depende de las fichas de sesión | Cierre de Fase 0 |
+| `07-checklist-sennova.md` / `08-checklist-meta-whatsapp.md` | En estado inicial | Habilitación de canales |
+| `09-consentimiento-informado.md` | Completo | — |
+| `10-plan-contactos-y-reuniones.md` | Completo; **tabla de agendamiento vacía** | Inicio de sesiones |
+| `12-ficha-registro-sesion.md` | Completo (nuevo) | — |
+| `docs/01-requisitos/00-matriz-trazabilidad-inicial.md` | Esqueleto (nuevo) | Fase 1 |
+
+**Qué falta para cerrar la Fase 0:**
+
+1. Agendar y ejecutar las 9 sesiones (`10`, sección 4), empezando por el líder SENNOVA y la Coordinación de Bienestar.
+2. Diligenciar una ficha por sesión (`12`) el mismo día de cada reunión.
+3. Observar una jornada real de entrega (`02`) para completar el AS-IS (`04`).
+4. Capturar las 17 métricas de línea base (`05`) en una semana típica y una pico.
+5. Consolidar el acta de hallazgos (`06`) y validarla con el área.
+6. Cerrar la matriz de trazabilidad (`docs/01-requisitos/00-matriz-trazabilidad-inicial.md`) para dar paso a la especificación de requisitos.

@@ -91,3 +91,23 @@ Se reconstruyeron los `docker-compose.yml` ausentes y se probó el ciclo complet
 **Pendiente:** renovar la clave de Google AI para recuperar el `ask` con citas. La recuperación por búsqueda vectorial no depende de esa clave (embeddings locales) y sigue operativa.
 
 **Respaldos:** programados diario a las 02:30, verificados en ejecución real (81 MB, 73 entradas, servicio repuesto en ~9 s) e incluyendo la imagen Docker parcheada (581 MB).
+
+## 10. Revisión de modelos y limpieza (2026-10-09, tarde)
+
+**Renovación de la clave de Google AI verificada.** Al cambiar la clave, el conjunto de modelos quedó reemplazado y `default_chat_model` apuntaba a un modelo inexistente (`Model not found`). Se registraron de nuevo y probaron:
+
+| Modelo | Proveedor | Credencial | Resultado |
+|---|---|---|---|
+| `gemini-3.5-flash-lite` | Google AI | Google AI "Nningendo Bee" (renovada) | **Funcional** — responde correctamente |
+| `gemini-3.8-flash` | Google AI | misma | Falla: `high demand` (límite del proveedor, transitorio) |
+| `minimax-m2.5` | MiniMax (nativo) | MiniMax Production (nueva) | Falla: `insufficient balance (1008)` — requiere abonos |
+| `minimax_m3` y ~20 modelos más | OpenCode Go | OpenCode Go | Falla: `Request is missing x-opencode-session` |
+
+**Defaults corregidos** al modelo verificado (`gemini-3.5-flash-lite`), con embeddings locales `qwen3-embedding:0.6b`.
+
+**RAG revalidado con la clave renovada:** búsqueda vectorial con similitud 0.6372 / 0.6004 / 0.5777 y `ask` con citas detectadas (`source:`/`note:` presentes en la respuesta).
+
+**Limpieza realizada:**
+
+- Contenedor `open-notebook-surrealdb-legacy` eliminado: solo replicaba los mismos bind mounts del contenedor activo y volúmenes anónimos sin uso. Servicio estable después.
+- Archivos huérfanos: se corrigió una afirmación previa. De los 41 archivos en `uploads/`, **40 están referenciados por fuentes vivas** y solo **1 era realmente huérfano** (`Academia X - Guía Bash (v1.0.0).pdf`, 2.4 MB), que se eliminó. Los 40 restantes se conservan porque borrarlos dejaría sin archivo a fuentes existentes.
