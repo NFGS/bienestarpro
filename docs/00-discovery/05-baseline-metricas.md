@@ -9,7 +9,7 @@
 |---|---|---|---|---|---|---|
 | R1 | Refrigerios planificados/semana | Cantidad solicitada a cafetería | | | | Entrevista cafetería |
 | R2 | Refrigerios entregados/semana | Cantidad efectivamente entregada | | | | Planilla de entrega |
-| R3 | Refrigerios no reclamados | Planificados − entregados | | | | Planilla vs solicitud |
+| R3 | Refrigerios no reclamados | Planificados  entregados | | | | Planilla vs solicitud |
 | R4 | % desperdicio | No reclamados / planificados × 100 | | | | Cálculo |
 | R5 | Tiempo de armado de planilla | Minutos que toma preparar la lista | | | | Observación |
 | R6 | Tiempo total de entrega | Inicio a fin de la entrega | | | | Observación |
