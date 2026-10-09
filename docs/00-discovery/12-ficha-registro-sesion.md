@@ -4,7 +4,7 @@
 
 **Reglas de la casa:**
 1. Se diligencia **el mismo día** de la sesión (notas crudas primero, limpieza después).
-2. Sin esto no se considera sesión cerrada, por más que haya sido.
+2. Sin esto no se considera sesión cerrada, por más interesante que haya sido.
 3. **Ningún requisito entra sin evidencia o sin marcar "por confirmar".**
 4. No se registran datos personales de aprendices: conteos agregados.
 
