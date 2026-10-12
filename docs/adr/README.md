@@ -10,18 +10,18 @@
 | ADR | Título | Estado |
 |---|---|---|
 | ADR-0001 | Estrategia de WhatsApp (Cloud API oficial vs alternativas) | Pendiente (Fase 2; insumos en checklist Meta) |
-| ADR-0002 | Stack del core: NestJS + sidecar Python | Decisión tomada — por redactar |
-| ADR-0003 | PostgreSQL + RLS multi-tenant por centro | Decisión tomada — por redactar |
-| ADR-0004 | Hub de notificaciones (outbox + BullMQ + adaptadores) | Decisión tomada — por redactar |
-| ADR-0005 | Automatización 100% en código (sin n8n, fair-code) | Decisión tomada — por redactar |
-| ADR-0006 | Identidad propia con puerto de federación (Google/Microsoft/Keycloak) | Decisión tomada — por redactar |
-| ADR-0007 | Topología free-tier del piloto y criterio de migración a VPS | Decisión tomada — por redactar |
-| ADR-0008 | PWA offline-first y modo kiosco (portería y entrega) | Decisión tomada — por redactar |
+| ADR-0002 | Stack del core: NestJS + sidecar Python | Decisión tomada — redactada (borrador v0.1) |
+| ADR-0003 | PostgreSQL + RLS multi-tenant por centro | Decisión tomada — redactada (borrador v0.1) |
+| ADR-0004 | Hub de notificaciones (outbox + BullMQ + adaptadores) | Decisión tomada — redactada (borrador v0.1) |
+| ADR-0005 | Automatización 100% en código (sin n8n, fair-code) | Decisión tomada — redactada (borrador v0.1) |
+| ADR-0006 | Identidad propia con puerto de federación (Google/Microsoft/Keycloak) | Decisión tomada — redactada (borrador v0.1) |
+| ADR-0007 | Topología free-tier del piloto y criterio de migración a VPS | Decisión tomada — redactada (borrador v0.1) |
+| ADR-0008 | PWA offline-first y modo kiosco (portería y entrega) | Decisión tomada — redactada (borrador v0.1) |
 | ADR-0009 | IA local y RAG (Ollama + LlamaIndex + pgvector) | Pendiente (Fase 2/Fase 5) |
 | ADR-0010 | Licencia y titularidad de propiedad intelectual (SENNOVA/UPI) | Bloqueada por Guía PI SENNOVA |
-| ADR-0011 | Datos sensibles: contactos de emergencia y anonimato en encuestas | Decisión tomada — por redactar |
+| ADR-0011 | Datos sensibles: contactos de emergencia y anonimato en encuestas | Decisión tomada — redactada (borrador v0.1) |
 | ADR-0012 | Integración de calendarios (Google Calendar / Microsoft Graph) | Diferida (Fase 5) |
-| ADR-0013 | Alcance del piloto: módulos completos y orden de construcción | Decisión tomada — por redactar |
+| ADR-0013 | Alcance del piloto: módulos completos y orden de construcción | Decisión tomada — redactada (borrador v0.1) |
 | ADR-0014 | Motor de investigación RAG local (Open Notebook) y política de conservación de archivos | Decisión tomada — redactada |
 
 ## Bitácora resumida (contexto de las decisiones)
