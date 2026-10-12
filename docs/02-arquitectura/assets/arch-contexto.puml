@@ -1,0 +1,39 @@
+@startuml arch-contexto
+left to right direction
+skinparam packageStyle rectangle
+title Arquitectura de contexto — BienestarPro (piloto)
+
+actor "Aprendiz" as APR
+actor "Instructor" as INS
+actor "Coordinación\nBienestar" as CB
+actor "Auxiliar\nBienestar" as AB
+actor "Cafetería" as CAF
+actor "Portería\n(Fase 5)" as POR
+
+rectangle "BienestarPro\n(plataforma del piloto)" as SYS {
+  usecase "Refrigerios, notificaciones, fichas\ny servicios de bienestar del centro" as CORE
+}
+
+rectangle "Proveedores de mensajería" as MSG {
+  cloud "Correo" as MAIL
+  cloud "WhatsApp\n(Meta Cloud API)" as WA
+  cloud "Push web\n(VAPID)" as PUSH
+}
+
+rectangle "Sistemas SENA (fuera del piloto)" as SENA {
+  cloud "Sofía Plus / Territorium\n(solo diagnóstico)" as SOFIA
+}
+
+APR --> SYS
+INS --> SYS
+CB --> SYS
+AB --> SYS
+CAF --> SYS
+POR --> SYS
+
+SYS --> MAIL
+SYS --> WA
+SYS --> PUSH
+SYS ..> SOFIA : futuro (no piloto)
+
+@enduml

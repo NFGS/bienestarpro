@@ -1,0 +1,44 @@
+@startuml arch-contenedores
+title Arquitectura de contenedores — BienestarPro (piloto free-tier)
+
+actor "Usuarios\ndel centro" as U
+
+rectangle "Borde" {
+  node "PWA\nReact 19 + Vite + Workbox\n(Vercel)\noffline-first + cola IndexedDB" as PWA
+}
+
+rectangle "Servicios (Render)" {
+  node "API core\nNestJS + Fastify\n(modulos M1-M11)" as API
+  node "Workers\nBullMQ" as WORK
+  node "Sidecar Python\nFastAPI\n(ETL, informes, IA Fase 5)" as AISVC
+}
+
+rectangle "Datos gestionados" {
+  database "PostgreSQL + RLS\n(Neon)" as DB
+  database "Redis\n(Upstash)" as REDIS
+}
+
+cloud "Correo / WhatsApp / Push" as MSG
+
+U --> PWA
+PWA --> API : HTTPS/JSON
+API --> DB : SQL (RLS por centro_id)
+API --> REDIS : colas
+WORK --> REDIS
+WORK --> MSG : adaptadores por canal
+API --> AISVC : HTTP interno
+AISVC ..> DB : vistas de lectura (futuro)
+
+note bottom of PWA
+  Entrega de refrigerios y kiosco
+  funcionan sin red; sincronizacion
+  idempotente (ADR-0008)
+end note
+
+note bottom of API
+  Hub de notificaciones: outbox
+  transaccional + cascada
+  push -> WhatsApp -> correo (ADR-0004)
+end note
+
+@enduml
