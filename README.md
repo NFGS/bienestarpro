@@ -1,5 +1,7 @@
 # BienestarPro
 
+[![CI](https://github.com/NFGS/bienestarpro/actions/workflows/ci.yml/badge.svg)](https://github.com/NFGS/bienestarpro/actions/workflows/ci.yml)
+
 > Sistema de gestión integral para el área de Bienestar al Aprendiz — Centro de Comercio y Turismo, SENA Regional Quindío (Armenia).
 
 BienestarPro es una plataforma web multi-plataforma (PWA) que automatiza la asignación y entrega de refrigerios, las notificaciones multicanal (correo, WhatsApp y push), el control de ingreso de portátiles y los servicios de comunicación institucional (noticias, encuestas, reuniones, directorio de fichas y contactos de emergencia).
