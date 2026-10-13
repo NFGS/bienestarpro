@@ -21,6 +21,7 @@ const DEMO = {
 
 describe('Autenticación (integración con PostgreSQL)', () => {
   let app: NestFastifyApplication;
+  let centerId: string;
   const sql = postgres(process.env.DATABASE_URL as string, { max: 2 });
   const db = drizzle(sql);
 
@@ -36,15 +37,13 @@ describe('Autenticación (integración con PostgreSQL)', () => {
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
 
-    const existingCenters = await db.select().from(centers).limit(1);
-    let centerId = existingCenters[0]?.id;
-    if (!centerId) {
-      const [center] = await db
-        .insert(centers)
-        .values({ name: 'Centro de prueba' })
-        .returning();
-      centerId = center.id;
-    }
+    // Centro propio de esta corrida (nunca reutilizar el de otro spec:
+    // en ejecución paralela el "primer centro" puede ser ajeno).
+    const [ownCenter] = await db
+      .insert(centers)
+      .values({ name: 'Centro auth prueba' })
+      .returning();
+    centerId = ownCenter.id;
     await db.delete(users).where(eq(users.email, DEMO.email));
     await db.insert(users).values({
       centerId,
@@ -58,6 +57,7 @@ describe('Autenticación (integración con PostgreSQL)', () => {
 
   afterAll(async () => {
     await db.delete(users).where(eq(users.email, DEMO.email));
+    await db.delete(centers).where(eq(centers.id, centerId));
     await app.close();
     await sql.end();
   });

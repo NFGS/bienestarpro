@@ -97,15 +97,15 @@ describe('Administración (usuarios, centros y auditoría)', () => {
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
 
-    const existing = await db.select().from(centers).limit(1);
-    centerId =
-      existing[0]?.id ??
-      (
-        await db
-          .insert(centers)
-          .values({ name: 'Centro admin prueba' })
-          .returning()
-      )[0].id;
+    // Centro propio de esta corrida: reutilizar "el primer centro" de la base
+    // causó aliasing entre specs en CI (los usuarios de este spec quedaron en
+    // el centro de otro spec y su teardown fallaba por FK).
+    centerId = (
+      await db
+        .insert(centers)
+        .values({ name: 'Centro admin prueba' })
+        .returning()
+    )[0].id;
 
     await db.delete(users).where(inArray(users.email, Object.values(EMAILS)));
     const passwordHash = await hash(PASSWORD);
@@ -153,6 +153,7 @@ describe('Administración (usuarios, centros y auditoría)', () => {
         ]),
       );
     await db.delete(centers).where(eq(centers.name, 'Centro Nuevo Prueba'));
+    await db.delete(centers).where(inArray(centers.id, [centerId]));
     await app.close();
     await sql.end();
   });
