@@ -351,7 +351,7 @@ El detector anti-patrones (plugin local de impeccable, ejecutado automáticament
 
 ## 10. Evidencias
 
-- **Capturas de pantalla:** omitidas en esta versión. El paquete de Playwright no está disponible en el entorno (su instalación requiere red y está fuera del alcance de esta sesión). El prototipo es un archivo local autocontenido y se revisa directamente en el navegador durante la validación presencial. Pendiente para la Fase 4: capturas con la skill `screenshot-capture` (Playwright) y auditoría axe/Lighthouse.
+- **Capturas de pantalla:** generadas el 2026-10-13 con Playwright (Chromium headless) en `docs/03-ux/evidencias/`: 13 capturas de viewport real (390x844, `pantalla-<id>.png`) y 13 de página completa (`pantalla-<id>-completa.png`, para revisar todo el contenido; en estas últimas la barra fija inferior puede aparecer a mitad de imagen, artefacto conocido de la captura de página completa). Queda pendiente para la Fase 4 la auditoría axe/Lighthouse sobre la implementación real.
 - **Verificación de contraste:** ejecutada por script (sección 8.1): 28/28 pares cumplen.
 - **Detector anti-patrones:** ejecutado por el hook local de impeccable tras cada edición; hallazgos y excepciones en 8.4.
 
