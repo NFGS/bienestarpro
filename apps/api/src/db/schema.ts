@@ -187,3 +187,103 @@ export const consents = pgTable('consents', {
     .defaultNow(),
   revokedAt: timestamp('revoked_at', { withTimezone: true }),
 });
+
+/**
+ * M1 — Refrigerios (rebanada 3). Tablas multi-tenant con RLS
+ * (ver migración 0008: políticas + función de confirmación pública).
+ */
+
+export const events = pgTable('events', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  centerId: uuid('center_id')
+    .notNull()
+    .references(() => centers.id),
+  date: date('date', { mode: 'string' }).notNull(),
+  journey: text('journey').notNull(),
+  /** borrador | activo | cerrado */
+  status: text('status').notNull().default('borrador'),
+  /** Reglas aplicadas al calcular los cupos (RF-13), congeladas al publicar. */
+  rulesSnapshot: jsonb('rules_snapshot'),
+  confirmationDeadline: timestamp('confirmation_deadline', {
+    withTimezone: true,
+  }),
+  publishedAt: timestamp('published_at', { withTimezone: true }),
+  closedAt: timestamp('closed_at', { withTimezone: true }),
+  closeSummary: jsonb('close_summary'),
+  cafeteriaPreparedAt: timestamp('cafeteria_prepared_at', {
+    withTimezone: true,
+  }),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const eventGroups = pgTable(
+  'event_groups',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    centerId: uuid('center_id')
+      .notNull()
+      .references(() => centers.id),
+    eventId: uuid('event_id')
+      .notNull()
+      .references(() => events.id),
+    groupId: uuid('group_id')
+      .notNull()
+      .references(() => groups.id),
+    calculatedQuota: integer('calculated_quota').notNull().default(0),
+    adjustedQuota: integer('adjusted_quota'),
+  },
+  (table) => [unique('event_groups_unique').on(table.eventId, table.groupId)],
+);
+
+export const eventParticipants = pgTable(
+  'event_participants',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    centerId: uuid('center_id')
+      .notNull()
+      .references(() => centers.id),
+    eventId: uuid('event_id')
+      .notNull()
+      .references(() => events.id),
+    learnerId: uuid('learner_id')
+      .notNull()
+      .references(() => learners.id),
+    /** convocado | confirmado | rechazado | entregado | no_reclamado */
+    status: text('status').notNull().default('convocado'),
+    qrToken: uuid('qr_token').notNull().unique(),
+    confirmedAt: timestamp('confirmed_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    unique('event_participants_unique').on(table.eventId, table.learnerId),
+  ],
+);
+
+export const deliveries = pgTable('deliveries', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  centerId: uuid('center_id')
+    .notNull()
+    .references(() => centers.id),
+  eventId: uuid('event_id')
+    .notNull()
+    .references(() => events.id),
+  participantId: uuid('participant_id')
+    .notNull()
+    .references(() => eventParticipants.id),
+  /** qr | manual */
+  method: text('method').notNull(),
+  registeredBy: uuid('registered_by')
+    .notNull()
+    .references(() => users.id),
+  /** Idempotencia para sincronización offline (UUID generado en el cliente). */
+  clientUuid: uuid('client_uuid').notNull().unique(),
+  /** Motivo en entrega manual o autorización de excepción. */
+  reason: text('reason'),
+  deliveredAt: timestamp('delivered_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
