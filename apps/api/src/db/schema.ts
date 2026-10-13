@@ -1,4 +1,12 @@
-import { integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import {
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from 'drizzle-orm/pg-core';
 
 /**
  * Esquema inicial (rebanada 1, M4 Administración).
@@ -34,3 +42,30 @@ export const users = pgTable('users', {
     .notNull()
     .defaultNow(),
 });
+
+/**
+ * Bitácora de auditoría (RF-04): solo inserción.
+ * Registra accesos, cambios de rol y operaciones críticas.
+ * `detail` nunca contiene datos sensibles (contraseñas, tokens, contactos).
+ */
+export const auditLog = pgTable(
+  'audit_log',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    centerId: uuid('center_id'),
+    actorId: uuid('actor_id'),
+    actorEmail: text('actor_email'),
+    action: text('action').notNull(),
+    entity: text('entity'),
+    entityId: uuid('entity_id'),
+    detail: jsonb('detail'),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index('audit_log_created_at_idx').on(table.createdAt),
+    index('audit_log_action_idx').on(table.action),
+    index('audit_log_actor_idx').on(table.actorId),
+  ],
+);

@@ -5,7 +5,10 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { AuthService, AuthenticatedUser } from './auth.service';
+import { eq } from 'drizzle-orm';
+import { DbService } from '../db/db.module';
+import { users } from '../db/schema';
+import type { AuthenticatedUser } from './auth.service';
 
 /** Petición con usuario autenticado adjunto por el guard. */
 export interface AuthenticatedRequest {
@@ -17,7 +20,7 @@ export interface AuthenticatedRequest {
 export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly jwt: JwtService,
-    private readonly auth: AuthService,
+    private readonly dbService: DbService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -32,11 +35,21 @@ export class JwtAuthGuard implements CanActivate {
       const payload = await this.jwt.verifyAsync<{ sub: string }>(
         header.slice(7),
       );
-      const user = await this.auth.findById(payload.sub);
-      if (!user) {
+      const [user] = await this.dbService.db
+        .select()
+        .from(users)
+        .where(eq(users.id, payload.sub))
+        .limit(1);
+      if (!user || user.status !== 'activo') {
         throw new Error('Usuario inactivo o inexistente');
       }
-      request.user = user;
+      request.user = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        centerId: user.centerId,
+      };
       return true;
     } catch {
       throw new UnauthorizedException('Token inválido o expirado');

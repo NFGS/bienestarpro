@@ -1,19 +1,14 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
+import { AuditModule } from '../audit/audit.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { JwtConfigModule } from './jwt-config.module';
 
 @Module({
-  imports: [
-    JwtModule.register({
-      secret: process.env.JWT_SECRET ?? 'secreto-solo-desarrollo',
-      signOptions: {
-        expiresIn: Number(process.env.JWT_ACCESS_TTL ?? 900),
-      },
-    }),
-  ],
+  imports: [AuditModule, JwtConfigModule],
   controllers: [AuthController],
   providers: [AuthService, JwtAuthGuard],
+  exports: [AuthService],
 })
 export class AuthModule {}

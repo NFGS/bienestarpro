@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { verify } from 'argon2';
 import { eq, or } from 'drizzle-orm';
+import { AuditService } from '../audit/audit.service';
 import { DbService } from '../db/db.module';
 import { users } from '../db/schema';
 
@@ -30,6 +31,7 @@ export class AuthService {
   constructor(
     private readonly dbService: DbService,
     private readonly jwt: JwtService,
+    private readonly audit: AuditService,
   ) {}
 
   async login(identifier: string, password: string): Promise<LoginResult> {
@@ -45,10 +47,25 @@ export class AuthService {
       .limit(1);
 
     if (!user || user.status !== 'activo') {
+      await this.audit.record({
+        action: 'login.failed',
+        entity: 'session',
+        actorEmail: user?.email ?? null,
+        centerId: user?.centerId ?? null,
+        detail: { identifier, reason: 'usuario_no_encontrado_o_inactivo' },
+      });
       throw new UnauthorizedException(INVALID_CREDENTIALS);
     }
 
     if (user.lockedUntil && user.lockedUntil.getTime() > Date.now()) {
+      await this.audit.record({
+        action: 'login.locked',
+        entity: 'session',
+        actorId: user.id,
+        actorEmail: user.email,
+        centerId: user.centerId,
+        detail: { identifier },
+      });
       throw new UnauthorizedException(
         'Cuenta bloqueada temporalmente por intentos fallidos. Intenta de nuevo más tarde.',
       );
@@ -68,6 +85,18 @@ export class AuthService {
           lockedUntil,
         })
         .where(eq(users.id, user.id));
+      await this.audit.record({
+        action: 'login.failed',
+        entity: 'session',
+        actorId: user.id,
+        actorEmail: user.email,
+        centerId: user.centerId,
+        detail: {
+          identifier,
+          reason: 'credenciales_invalidas',
+          bloqueada: lockedUntil !== null,
+        },
+      });
       throw new UnauthorizedException(INVALID_CREDENTIALS);
     }
 
@@ -75,6 +104,14 @@ export class AuthService {
       .update(users)
       .set({ failedAttempts: 0, lockedUntil: null })
       .where(eq(users.id, user.id));
+
+    await this.audit.record({
+      action: 'login.success',
+      entity: 'session',
+      actorId: user.id,
+      actorEmail: user.email,
+      centerId: user.centerId,
+    });
 
     const accessToken = await this.jwt.signAsync({
       sub: user.id,
