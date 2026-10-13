@@ -13,10 +13,10 @@ BienestarPro es una plataforma web multi-plataforma (PWA) que automatiza la asig
 
 | Fase | Estado |
 |---|---|
-| 0 — Discovery | En curso |
-| 1 — Requisitos | Pendiente |
-| 2 — Arquitectura | Pendiente |
-| 3 — UX | Pendiente |
+| 0 — Discovery | En curso — instrumentos listos; sesiones de campo pendientes |
+| 1 — Requisitos | Borrador v0.1 (ERS, casos de uso, historias, diagrama) |
+| 2 — Arquitectura | Borrador v0.1 (ADRs, modelo de datos, threat model, referencia) |
+| 3 — UX | En curso (revisión de muestras + design system v0.1) |
 | 4 — Construcción + piloto | Pendiente |
 | 5 — Post-piloto (portátiles, IA) | Pendiente |
 | 6 — Cierre y productos SENNOVA | Pendiente |
@@ -29,6 +29,9 @@ BienestarPro es una plataforma web multi-plataforma (PWA) que automatiza la asig
 | Reglas para agentes y desarrolladores | [`AGENTS.md`](./AGENTS.md) |
 | Decisiones de arquitectura (ADRs) | [`docs/adr/`](./docs/adr/) |
 | Discovery (Fase 0) | [`docs/00-discovery/`](./docs/00-discovery/) |
+| Requisitos (Fase 1) | [`docs/01-requisitos/`](./docs/01-requisitos/) |
+| Arquitectura (Fase 2) | [`docs/02-arquitectura/`](./docs/02-arquitectura/) |
+| UX (Fase 3) | [`docs/03-ux/`](./docs/03-ux/) |
 | Investigación SENNOVA | [`docs/sennova/`](./docs/sennova/) |
 
 ## Estructura del repositorio
@@ -73,9 +76,10 @@ Detalle completo y decisiones en [`SPEC.md`](./SPEC.md) y [`docs/adr/`](./docs/a
 - Conventional Commits; ramas cortas; cambios pequeños y revisables.
 - Documentación en español; código y nombres técnicos en inglés.
 - Sin secretos en el repositorio. Datos personales bajo la Ley 1581 de 2012.
+- Licencia y titularidad: en definición con UPI/SAPI del SENA (ver ADR-0010 en [`docs/adr/`](./docs/adr/README.md)).
 
-## Próximos pasos (Fase 0)
+## Próximos pasos
 
-1. Ejecutar entrevistas y observación (guion en `docs/00-discovery/01-guion-entrevistas.md`).
-2. Completar inventario documental y métricas de línea base.
-3. Cerrar el checklist SENNOVA y el checklist Meta/WhatsApp.
+1. Ejecutar las sesiones de campo del discovery (instrumentos y guiones listos en `docs/00-discovery/`).
+2. Validar los borradores de requisitos (Fase 1) y arquitectura (Fase 2) con los hallazgos del discovery.
+3. Continuar la Fase 3: wireframes de los flujos críticos (confirmar asistencia, entrega con QR, consolidado de cafetería).
