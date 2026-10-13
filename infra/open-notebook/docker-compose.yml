@@ -60,10 +60,13 @@ services:
       - open-notebook
 
   open_notebook:
-    # Imagen LOCAL parcheada: no existe en ningún registro. No sustituir por
-    # ghcr.io/lfnovo/open-notebook sin revisar antes qué parche aplica.
-    image: open_notebook:kimi-patched
-    pull_policy: never
+    # Imagen OFICIAL pineada a 1.15.0 (2026-10-09): reproducible, no persigue
+    # v1-latest. La imagen local `open_notebook:kimi-patched` (v1.10.0 + parche
+    # sobre ai/models.py) quedó deprecada: upstream añadió el provider
+    # `anthropic_compatible` (v1.14) que cubre Kimi/Moonshot sin parches.
+    # Siguiente actualización: cambiar aquí el pin y repetir el ciclo
+    # documentado en MAINTENIMIENTO.md.
+    image: lfnovo/open_notebook:1.15.0
     container_name: open-notebook-open_notebook-1
     restart: always
     # Red host: la app habla con SurrealDB en ws://localhost:8000 y expone la
@@ -82,6 +85,22 @@ services:
       SURREAL_PASSWORD: "${SURREAL_PASSWORD}"
       SURREAL_NAMESPACE: "${SURREAL_NAMESPACE:-open_notebook}"
       SURREAL_DATABASE: "${SURREAL_DATABASE:-open_notebook}"
+      # --- Knobs nuevos en v1.13-v1.15 (sin efecto mientras estén comentados) ---
+      # Motores de extracción pesados (se instalan en el primer arranque y se
+      # cachean en ./notebook_data): OPEN_NOTEBOOK_ENABLE_DOCLING=true (OCR +
+      # layout) / OPEN_NOTEBOOK_ENABLE_CRAWL4AI=true (Chromium local). Antes
+      # del upgrade todo corría por el motor `auto`; sigue siendo el default.
+      # Timeouts de esperanto v1.15: el default de LLM (180s) y sobre todo el
+      # de EMBEDDINGS (60s) resultaron cortos con Ollama local en CPU: los
+      # lotes de 50 textos tardan ~90-150s y fallaban con error vacío
+      # (MAINTENIMIENTO.md incidente 8). Embeddings: 900s. Chat: 420s.
+      ESPERANTO_LLM_TIMEOUT: "420"
+      ESPERANTO_EMBEDDING_TIMEOUT: "900"
+      # Concurrencia del worker: 2 desde 2026-10-12 (default upstream: 5).
+      # Con embeddings locales en Ollama, más concurrencia satura el modelo y
+      # produce fallos en lote; upstream recomienda valores bajos. Al cambiarla
+      # hay que recrear el contenedor.
+      OPEN_NOTEBOOK_WORKER_MAX_TASKS: "2"
     volumes:
       # Ajustes de la app, notas, imágenes y archivos subidos (/app/data/uploads).
       - ./notebook_data:/app/data

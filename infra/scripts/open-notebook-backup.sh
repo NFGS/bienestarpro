@@ -20,7 +20,7 @@
 #   OPEN_NOTEBOOK_DIR            (por defecto: $HOME/open-notebook)
 #   OPEN_NOTEBOOK_BACKUP_DIR     (por defecto: $HOME/backups/open-notebook)
 #   OPEN_NOTEBOOK_BACKUP_KEEP    días que se avisan para limpiar (por defecto 30)
-#   OPEN_NOTEBOOK_SAVE_IMAGE     1 = además guarda la imagen Docker parcheada (0 = no)
+#   OPEN_NOTEBOOK_SAVE_IMAGE     1 = además guarda la imagen Docker legacy parcheada (rollback; 0 = no)
 # -----------------------------------------------------------------
 set -uo pipefail
 
@@ -28,6 +28,8 @@ BASE_DIR="${OPEN_NOTEBOOK_DIR:-$HOME/open-notebook}"
 BACKUP_DIR="${OPEN_NOTEBOOK_BACKUP_DIR:-$HOME/backups/open-notebook}"
 KEEP="${OPEN_NOTEBOOK_BACKUP_KEEP:-30}"
 SAVE_IMAGE="${OPEN_NOTEBOOK_SAVE_IMAGE:-1}"
+# Imagen LEGACY (v1.10.0 + parche kimi): única e irrecuperable → vía de rollback.
+# La imagen en uso (oficial, pineada) es reproducible con `docker pull`.
 IMAGE_NAME="open_notebook:kimi-patched"
 STAMP="$(date '+%F_%H%M')"
 ARCHIVE="$BACKUP_DIR/open-notebook-$STAMP.tar.gz"
@@ -74,8 +76,9 @@ else
   exit 1
 fi
 
-# 5) Imagen parcheada: el código del parche (apply_kimi_patch.py) no existe en
-#    disco, así que la imagen es irrecuperable si se pierde. Se guarda una vez.
+# 5) Imagen legacy parcheada (v1.10.0+kimi): su código fuente (apply_kimi_patch.py)
+#    no existe en disco — irrecuperable si se pierde y única vía de rollback
+#    tras el upgrade. Se guarda una sola vez.
 if [ "$SAVE_IMAGE" = "1" ]; then
   IMG_ARCHIVE="$BACKUP_DIR/image-$(echo "$IMAGE_NAME" | tr ':/' '--').tar.gz"
   if [ -f "$IMG_ARCHIVE" ]; then

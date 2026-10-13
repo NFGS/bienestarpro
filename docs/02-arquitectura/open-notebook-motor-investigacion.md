@@ -2,7 +2,7 @@
 
 **Propósito:** documentar cómo está desplegado el motor de investigación del proyecto (el que permite consultar el corpus con citas verificables) y cómo mantenerlo. Complementa la [evidencia del paso 0.5](../00-discovery/11-verificacion-paso-05-open-notebook.md) y el [ADR-0014](../adr/ADR-0014-motor-investigacion-rag-open-notebook.md).
 
-**Verificado:** 2026-10-09 contra el estado real de los contenedores (`docker inspect`), no contra documentación previa. Incluye el ciclo de recreación completa del despliegue.
+**Verificado:** 2026-10-09 contra el estado real de los contenedores (`docker inspect`), no contra documentación previa. Incluye el ciclo de recreación completa del despliegue. **Actualizado tras el upgrade a v1.15.0** (ver [ADR-0015](../adr/ADR-0015-upgrade-open-notebook-1-15.md)).
 
 ---
 
@@ -14,7 +14,7 @@ El proyecto necesita consultar libros, normativa SENA y notas propias **con cita
 
 | Elemento | Valor real | Por qué importa |
 |---|---|---|
-| Imagen de la app | `open_notebook:kimi-patched` | Imagen **local parcheada**; no existe en ningún registro. |
+| Imagen de la app | `lfnovo/open_notebook:1.15.0` | **Oficial, pineada** desde 2026-10-09 ([ADR-0015](../adr/ADR-0015-upgrade-open-notebook-1-15.md)). La local parcheada `open_notebook:kimi-patched` (v1.10.0) quedó deprecada; su respaldo se conserva solo como rollback. |
 | Red de la app | `network_mode: host` | Por eso no hay `ports`: con red host Docker los descarta. |
 | API / UI | `localhost:5055` / `localhost:8502` | Endpoint de salud: **`/health`** (`/api/health` da 404). |
 | Base de datos | `surrealdb/surrealdb:v2`, `127.0.0.1:8000` | Solo loopback; nunca expuesta a la red local. |
@@ -94,6 +94,10 @@ docker compose up -d                       # ahora sí crea ambos servicios
 
 Después, la primera ejecución falla con SurrealDB en bucle por el usuario (ver sección 2). Corregido con `user: "0:0"`, el servicio quedó `healthy` en ambos contenedores.
 
+### Actualización de versión (probado el 2026-10-09: 1.10.0 -> 1.15.0)
+
+Ciclo probado: cambiar el pin en `docker-compose.yml` -> `docker pull` -> respaldo -> `docker compose up -d` (recrea solo la app; la base migra sola, versión 15 -> 25) -> verificar `/health`, `GET /api/settings` y worker en RUNNING. El parche kimi quedó deprecado: upstream cubre Kimi con el provider `anthropic_compatible` desde v1.14. Detalle y evidencia: [ADR-0015](../adr/ADR-0015-upgrade-open-notebook-1-15.md) y `MAINTENIMIENTO.md`.
+
 ### Respaldo automático
 
 Script: [`infra/scripts/open-notebook-backup.sh`](../../infra/scripts/open-notebook-backup.sh) · Registros: `~/backups/open-notebook/` y `cron.log`.
@@ -101,7 +105,7 @@ Script: [`infra/scripts/open-notebook-backup.sh`](../../infra/scripts/open-noteb
 - **Programado:** todos los días a las **02:30** por cron.
 - **Qué respalda:** `notebook_data` + `surreal_data`, comprimidos y **verificados** (si el archivo no se puede leer, el script lo reporta como fallido).
 - **Consistencia:** detiene los contenedores mientras comprime; los repone siempre, incluso si la compresión falla.
-- **También guarda la imagen Docker parcheada** (una sola vez, 581 MB), porque el código del parche (`apply_kimi_patch.py`) **no existe en disco**: sin ese archivo la imagen sería irrecuperable.
+- **También guarda la imagen Docker legacy parcheada** (una sola vez, 581 MB), porque su código fuente (`apply_kimi_patch.py`) **no existe en disco**: es la vía de rollback tras el upgrade y sería irrecuperable sin ese archivo. La imagen en uso (oficial, pineada) es reproducible con `docker pull`.
 - **No borra nada.** Cuando un respaldo supera los 30 días, el script solo *avisa* qué se puede limpiar; borrar es decisión del usuario.
 
 Restauración manual:
@@ -112,7 +116,8 @@ docker compose down
 tar xzf ~/backups/open-notebook/open-notebook-AAAA-MM-DD_HHMM.tar.gz -C ~/open-notebook
 docker compose up -d
 
-# Restaurar la imagen (si se perdió)
+# Restaurar la imagen legacy (rollback a v1.10.0; después hay que volver a
+# fijar el pin viejo en docker-compose.yml antes de `docker compose up -d`)
 gunzip -c ~/backups/open-notebook/image-open_notebook-kimi-patched.tar.gz | docker load
 ```
 
@@ -149,6 +154,6 @@ Después de borrar, **reinicia el worker**: si no, sigue reintentando los comand
 
 - La clave `OPEN_NOTEBOOK_ENCRYPTION_KEY` está en `~/open-notebook/.env`: si se pierde, las credenciales guardadas quedan inservibles.
 - Los respaldos están en el **mismo disco** que los datos: protegen de errores y borrados accidentales, no de una falla del disco. Copiar además a un disco externo o nube cuando el corpus crezca.
-- El despliegue depende de una imagen local parcheada cuyo código fuente no está en disco; por eso el respaldo incluye la imagen.
+- Ya **no** se depende de una imagen local irreproducible: la app corre sobre la imagen oficial pineada (`docker pull` la recupera). La imagen legacy parcheada sigue respaldada como vía de rollback.
 - Google aplica límites de uso a Gemini: si el chat falla por demanda, es del proveedor y se resuelve reintentando o cambiando de modelo, no del despliegue.
 - `~/open-notebook/` no es un repositorio git: la copia en el repo (`infra/open-notebook/`) **no se sincroniza sola**; si cambias uno, actualiza el otro y verifica con `diff`.

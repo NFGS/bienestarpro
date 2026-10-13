@@ -58,8 +58,8 @@ El criterio de aceptación del paso 0.5 queda cumplido: **búsqueda vectorial op
 - [x] Re-carga de libros: el usuario los está subiendo en lotes pequeños (el lote anterior se eliminó desde la UI porque el proceso se bloqueó).
 - [x] Despliegue reconstruido y versionado sin secretos → ver [ADR-0014](../adr/ADR-0014-motor-investigacion-rag-open-notebook.md) y [`infra/open-notebook/`](../../infra/open-notebook/).
 - [x] `auto_delete_files=no` aplicado (conserva archivos para reprocesar sin volver a subir).
-- [ ] Copia de seguridad periódica de `notebook_data` y `surreal_data` (procedimiento documentado, aún no programado).
-- [ ] Documentar el parche de la imagen `open_notebook:kimi-patched` antes de actualizar la imagen base.
+- [x] Copia de seguridad periódica de `notebook_data` y `surreal_data`: programada a diario (02:30, cron) con verificación de archivo; ver `MAINTENIMIENTO.md` e [`infra/scripts/open-notebook-backup.sh`](../../infra/scripts/open-notebook-backup.sh).
+- [x] Parche de la imagen documentado y **deprecado**: el despliegue migró a la imagen oficial pineada `lfnovo/open_notebook:1.15.0` (upstream cubre Kimi con `anthropic_compatible`). Ver [ADR-0015](../adr/ADR-0015-upgrade-open-notebook-1-15.md).
 
 ## 8. Ver también
 

@@ -20,9 +20,9 @@ Al recrear contenedores: `cd ~/open-notebook && docker compose up -d` (ver el ci
 - El `.gitignore` del proyecto ignora `.env` y `.env.*` y **permite** `.env.example`.
 - **Nunca** copies el `.env` real al repositorio.
 
-## Topología (verificada con `docker inspect`, 2026-10-09)
+## Topología (verificada con `docker inspect`, 2026-10-09; actualizada tras el upgrade a 1.15.0)
 
-- Imagen de la app: `open_notebook:kimi-patched` (imagen **local parcheada**, no está en ningún registro).
+- Imagen de la app: `lfnovo/open_notebook:1.15.0` (oficial, **pineada** desde 2026-10-09; ver [ADR-0015](../../docs/adr/ADR-0015-upgrade-open-notebook-1-15.md)). La local parcheada `open_notebook:kimi-patched` quedó deprecada y solo se conserva su respaldo para rollback.
 - Red de la app: `network_mode: host` → API en `:5055`, UI en `:8502`, sin `ports` (con red host Docker los descarta).
 - SurrealDB: `surrealdb/surrealdb:v2`, solo en `127.0.0.1:8000`, y **con `user: "0:0"`** (obligatorio: los datos son de `root` en el host y la imagen usa por defecto el usuario `65532`).
 - Datos: bind mounts `./notebook_data` (app) y `./surreal_data` (base).
@@ -47,7 +47,7 @@ Estado vigente (2026-10-09): `auto_delete_files=no`, `default_embedding_option=a
 ## Respaldos
 
 - Copia de seguridad **automática diaria a las 02:30** (cron), con verificación del archivo.
-- Respalda `notebook_data` + `surreal_data`, y **una sola vez la imagen Docker parcheada** (su código fuente no existe en disco).
+- Respalda `notebook_data` + `surreal_data`, y **una sola vez la imagen Docker legacy parcheada** (irrecuperable sin ese archivo; es la vía de rollback). La imagen en uso es oficial y se re-descarga con `docker pull`.
 - No borra nada: solo avisa qué respaldos superan los 30 días.
 - Detalle y restauración: `docs/02-arquitectura/open-notebook-motor-investigacion.md`.
 

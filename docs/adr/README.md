@@ -23,6 +23,7 @@
 | ADR-0012 | Integración de calendarios (Google Calendar / Microsoft Graph) | Diferida (Fase 5) |
 | ADR-0013 | Alcance del piloto: módulos completos y orden de construcción | Decisión tomada — redactada (borrador v0.1) |
 | ADR-0014 | Motor de investigación RAG local (Open Notebook) y política de conservación de archivos | Decisión tomada — redactada |
+| ADR-0015 | Actualizar Open Notebook de la imagen local parcheada v1.10.0 a la imagen oficial v1.15.0 pineada | Decisión tomada — redactada |
 
 ## Bitácora resumida (contexto de las decisiones)
 
@@ -35,3 +36,4 @@
 | 2026-10-08 | Módulos completos desde el piloto | Decisión del cliente interno con mitigaciones (equipo + rebanadas verticales) |
 | 2026-10-08 | Embeddings locales (qwen3-embedding:0.6b); chat en nube | Hardware limitado (15 GB RAM, GPU AMD) |
 | 2026-10-09 | Motor de investigación: Open Notebook en Docker; embeddings locales, chat en Google AI | Corpus con licencia se mantiene local; gateway anterior incompatible (`MissingSessionID`) |
+| 2026-10-12 | Open Notebook actualizado a imagen oficial v1.15.0 pineada (se depreca la imagen parcheada local) | 5 versiones de retraso; el parche Kimi quedó cubierto nativamente por `anthropic_compatible` |
