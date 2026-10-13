@@ -17,7 +17,7 @@ BienestarPro es una plataforma web multi-plataforma (PWA) que automatiza la asig
 | 1 — Requisitos | Borrador v0.1 (ERS, casos de uso, historias, diagrama) |
 | 2 — Arquitectura | Borrador v0.1 (ADRs, modelo de datos, threat model, referencia) |
 | 3 — UX | En curso (revisión de muestras + design system v0.1) |
-| 4 — Construcción + piloto | Pendiente |
+| 4 — Construcción + piloto | En curso (rebanada 0: workspace + shell PWA) |
 | 5 — Post-piloto (portátiles, IA) | Pendiente |
 | 6 — Cierre y productos SENNOVA | Pendiente |
 
@@ -32,6 +32,7 @@ BienestarPro es una plataforma web multi-plataforma (PWA) que automatiza la asig
 | Requisitos (Fase 1) | [`docs/01-requisitos/`](./docs/01-requisitos/) |
 | Arquitectura (Fase 2) | [`docs/02-arquitectura/`](./docs/02-arquitectura/) |
 | UX (Fase 3) | [`docs/03-ux/`](./docs/03-ux/) |
+| Construcción (Fase 4) | [`docs/04-construccion/`](./docs/04-construccion/) |
 | Investigación SENNOVA | [`docs/sennova/`](./docs/sennova/) |
 
 ## Estructura del repositorio
@@ -51,6 +52,7 @@ BienestarPro/
 │   ├── 01-requisitos/
 │   ├── 02-arquitectura/
 │   ├── 03-ux/
+│   ├── 04-construccion/
 │   ├── adr/
 │   └── sennova/
 ├── SPEC.md
@@ -81,5 +83,5 @@ Detalle completo y decisiones en [`SPEC.md`](./SPEC.md) y [`docs/adr/`](./docs/a
 ## Próximos pasos
 
 1. Ejecutar las sesiones de campo del discovery (instrumentos y guiones listos en `docs/00-discovery/`).
-2. Validar los borradores de requisitos (Fase 1) y arquitectura (Fase 2) con los hallazgos del discovery.
-3. Continuar la Fase 3: wireframes de los flujos críticos (confirmar asistencia, entrega con QR, consolidado de cafetería).
+2. Validar el prototipo con usuarios (guion e instrumento en `docs/03-ux/`).
+3. Continuar la Fase 4: rebanada 0 (esqueletos de API/IA, contratos y CI) y después la rebanada 1 (M4 Administración).

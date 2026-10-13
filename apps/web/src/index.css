@@ -1,0 +1,34 @@
+/* Base mínima del shell — la fuente de verdad visual es
+   docs/03-ux/02-design-system.md (tokens completos en la rebanada 1). */
+:root {
+  font-family:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+  font-size: 18px;
+  line-height: 1.5;
+  color: #202a19;
+  background: #ffffff;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+}
+
+main.shell {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+h1 {
+  font-size: 1.875rem;
+  line-height: 1.2;
+}
+
+.note {
+  color: #55654b;
+}

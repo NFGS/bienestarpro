@@ -1,0 +1,17 @@
+{
+  "name": "bienestarpro",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Plataforma de operación integral de Bienestar al Aprendiz (SENA, Centro de Comercio y Turismo) — monorepo",
+  "packageManager": "pnpm@12.5.1",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev:web": "pnpm --filter @bienestarpro/web dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r --if-present test"
+  }
+}
