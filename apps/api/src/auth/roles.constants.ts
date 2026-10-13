@@ -11,3 +11,10 @@ export const APP_ROLES = [
 ] as const;
 
 export type AppRole = (typeof APP_ROLES)[number];
+
+/** Roles con segundo factor TOTP obligatorio (SPEC §3: administración y portería). */
+export const TOTP_REQUIRED_ROLES: readonly AppRole[] = [
+  'superadmin',
+  'coordinacion',
+  'porteria',
+];

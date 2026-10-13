@@ -14,6 +14,8 @@ import type { AuthenticatedUser } from './auth.service';
 export interface AuthenticatedRequest {
   headers: { authorization?: string };
   user?: AuthenticatedUser;
+  /** Claims del token verificado (p. ej. `totp`). */
+  authPayload?: { sub: string; totp?: boolean };
 }
 
 @Injectable()
@@ -32,7 +34,7 @@ export class JwtAuthGuard implements CanActivate {
       throw new UnauthorizedException('Token requerido');
     }
     try {
-      const payload = await this.jwt.verifyAsync<{ sub: string }>(
+      const payload = await this.jwt.verifyAsync<{ sub: string; totp?: boolean }>(
         header.slice(7),
       );
       const [user] = await this.dbService.db
@@ -43,6 +45,7 @@ export class JwtAuthGuard implements CanActivate {
       if (!user || user.status !== 'activo') {
         throw new Error('Usuario inactivo o inexistente');
       }
+      request.authPayload = payload;
       request.user = {
         id: user.id,
         name: user.name,

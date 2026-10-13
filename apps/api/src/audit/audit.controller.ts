@@ -3,12 +3,13 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { AuthenticatedRequest } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
+import { RequireTotpGuard } from '../auth/require-totp.guard';
 import { AuditService } from './audit.service';
 import { AuditQueryDto } from './dto/audit-query.dto';
 
 /** CU-04 / RF-04: consultar la auditoría (solo lectura, con filtros y paginación). */
 @Controller('audit')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, RequireTotpGuard)
 export class AuditController {
   constructor(private readonly audit: AuditService) {}
 

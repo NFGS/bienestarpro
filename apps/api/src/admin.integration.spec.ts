@@ -11,6 +11,7 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AppModule } from './app.module';
+import { generateOtpCode } from './auth/otp';
 import { centers, users } from './db/schema';
 
 const PASSWORD = 'ClaveSegura123*';
@@ -38,6 +39,48 @@ describe('Administración (usuarios, centros y auditoría)', () => {
     });
     expect(res.statusCode).toBe(200);
     return res.json().accessToken as string;
+  }
+
+  /** RF-05: los roles administrativos deben enrolar TOTP antes de operar. */
+  async function loginWithTotp(identifier: string): Promise<string> {
+    const first = await app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { identifier, password: PASSWORD },
+    });
+    expect(first.statusCode).toBe(200);
+    const body = first.json() as {
+      accessToken: string;
+      totpEnrollmentRequired: boolean;
+    };
+    if (!body.totpEnrollmentRequired) {
+      return body.accessToken;
+    }
+    const enroll = await app.inject({
+      method: 'POST',
+      url: '/api/auth/totp/enroll',
+      headers: { authorization: `Bearer ${body.accessToken}` },
+    });
+    expect(enroll.statusCode).toBe(200);
+    const secret = (enroll.json() as { secret: string }).secret;
+    const activate = await app.inject({
+      method: 'POST',
+      url: '/api/auth/totp/activate',
+      headers: { authorization: `Bearer ${body.accessToken}` },
+      payload: { code: generateOtpCode(secret) },
+    });
+    expect(activate.statusCode).toBe(200);
+    const second = await app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: {
+        identifier,
+        password: PASSWORD,
+        totpCode: generateOtpCode(secret),
+      },
+    });
+    expect(second.statusCode).toBe(200);
+    return second.json().accessToken as string;
   }
 
   beforeAll(async () => {
@@ -93,9 +136,9 @@ describe('Administración (usuarios, centros y auditoría)', () => {
       },
     ]);
 
-    adminToken = await login(EMAILS.admin);
+    adminToken = await loginWithTotp(EMAILS.admin);
     aprendizToken = await login(EMAILS.aprendiz);
-    superadminToken = await login(EMAILS.superadmin);
+    superadminToken = await loginWithTotp(EMAILS.superadmin);
   });
 
   afterAll(async () => {

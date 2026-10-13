@@ -38,6 +38,10 @@ export const users = pgTable('users', {
   status: text('status').notNull().default('activo'),
   failedAttempts: integer('failed_attempts').notNull().default(0),
   lockedUntil: timestamp('locked_until', { withTimezone: true }),
+  /** Secreto TOTP cifrado con AES-256-GCM (TOTP_ENCRYPTION_KEY). */
+  totpSecret: text('totp_secret'),
+  /** Fecha de activación del segundo factor; nulo = no configurado. */
+  totpEnabledAt: timestamp('totp_enabled_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .defaultNow(),
