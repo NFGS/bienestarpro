@@ -14,6 +14,8 @@ import GroupDetailPage from './pages/GroupDetailPage';
 import GroupsPage from './pages/GroupsPage';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
+import PreferencesPage from './pages/PreferencesPage';
+import TemplatesPage from './pages/TemplatesPage';
 import UsersPage from './pages/UsersPage';
 
 type View =
@@ -24,7 +26,9 @@ type View =
   | 'group-detail'
   | 'events'
   | 'event-detail'
-  | 'delivery';
+  | 'delivery'
+  | 'preferences'
+  | 'templates';
 
 function App() {
   const [session, setSession] = useState<StoredSession | null>(() =>
@@ -129,6 +133,24 @@ function App() {
         token={session.accessToken}
         eventId={selectedEventId}
         onBack={() => setView('event-detail')}
+      />
+    );
+  }
+
+  if (view === 'preferences') {
+    return (
+      <PreferencesPage
+        token={session.accessToken}
+        onBack={() => setView('home')}
+      />
+    );
+  }
+
+  if (view === 'templates') {
+    return (
+      <TemplatesPage
+        token={session.accessToken}
+        onBack={() => setView('home')}
       />
     );
   }

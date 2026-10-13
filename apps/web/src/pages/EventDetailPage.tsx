@@ -5,12 +5,18 @@ import {
   cafeteriaSummary,
   closeEvent,
   getEventDetail,
+  listEventNotifications,
   markCafeteriaPrepared,
   publishEvent,
 } from '../lib/api';
-import type { CafeteriaSummary, EventDetail } from '../lib/api';
+import type {
+  CafeteriaSummary,
+  EventDetail,
+  NotificationRow,
+} from '../lib/api';
 
 const DELIVERY_ROLES = ['superadmin', 'coordinacion', 'auxiliar'];
+const ACUSES_ROLES = ['superadmin', 'coordinacion', 'auxiliar'];
 
 interface Props {
   token: string;
@@ -29,6 +35,8 @@ export default function EventDetailPage({
 }: Props) {
   const [detail, setDetail] = useState<EventDetail | null>(null);
   const [cafeteria, setCafeteria] = useState<CafeteriaSummary | null>(null);
+  const [acuses, setAcuses] = useState<NotificationRow[]>([]);
+  const showAcuses = ACUSES_ROLES.includes(role);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,23 +45,35 @@ export default function EventDetailPage({
 
   const load = useCallback(async () => {
     try {
-      const [eventDetail, cafeteriaData] = await Promise.all([
+      const [eventDetail, cafeteriaData, acuseRows] = await Promise.all([
         getEventDetail(token, eventId),
         cafeteriaSummary(token, eventId),
+        ACUSES_ROLES.includes(role)
+          ? listEventNotifications(token, eventId)
+          : Promise.resolve([] as NotificationRow[]),
       ]);
       setDetail(eventDetail);
       setCafeteria(cafeteriaData);
+      setAcuses(acuseRows);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo cargar el evento.');
     } finally {
       setLoading(false);
     }
-  }, [token, eventId]);
+  }, [token, eventId, role]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  async function refreshAcuses(): Promise<void> {
+    try {
+      setAcuses(await listEventNotifications(token, eventId));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudieron actualizar los acuses.');
+    }
+  }
 
   async function handlePublish(): Promise<void> {
     setError(null);
@@ -288,6 +308,62 @@ export default function EventDetailPage({
           </button>
         ) : null}
       </section>
+
+      {showAcuses ? (
+        <section className="card">
+          <h2>Notificaciones (acuses)</h2>
+          <p className="muted">
+            Estado de la convocatoria y recordatorios enviados a los aprendices.
+          </p>
+          <button
+            className="btn btn--secondary btn--small"
+            type="button"
+            onClick={() => void refreshAcuses()}
+          >
+            Actualizar
+          </button>
+          {acuses.length === 0 ? (
+            <p className="muted">
+              Sin notificaciones registradas para este evento (los
+              destinatarios sin correo o teléfono no reciben convocatoria).
+            </p>
+          ) : (
+            <ul className="admin__list">
+              {acuses.map((item) => (
+                <li key={item.id} className="admin__row">
+                  <div className="admin__info">
+                    <strong>
+                      {item.recipientName ?? item.recipientEmail ?? 'Destinatario'}
+                    </strong>
+                    <span className="muted">
+                      {item.type} · canal: {item.channelEffective ?? '—'} ·
+                      intentos: {item.attempts}
+                    </span>
+                    {item.lastError ? (
+                      <span className="muted">Último error: {item.lastError}</span>
+                    ) : null}
+                  </div>
+                  <span
+                    className={
+                      item.status === 'sent'
+                        ? 'chip chip--ok'
+                        : item.status === 'failed'
+                          ? 'chip chip--off'
+                          : 'chip chip--warn'
+                    }
+                  >
+                    {item.status === 'sent'
+                      ? 'enviado'
+                      : item.status === 'failed'
+                        ? 'fallido'
+                        : item.status}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
     </main>
   );
 }

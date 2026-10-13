@@ -380,6 +380,37 @@ h2 {
   color: var(--bp-text-primary);
 }
 
+/* Preferencias y plantillas */
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: var(--bp-space-3);
+  min-height: 48px;
+  font-size: 1.125rem;
+}
+
+.check-row input[type='checkbox'] {
+  width: 24px;
+  height: 24px;
+  accent-color: var(--bp-primary);
+}
+
+.prefs__subtitle {
+  margin-top: var(--bp-space-5);
+}
+
+textarea {
+  width: 100%;
+  padding: var(--bp-space-2) var(--bp-space-3);
+  font-size: 1rem;
+  font-family: inherit;
+  border: 1px solid var(--bp-border-input);
+  border-radius: var(--bp-radius-sm);
+  background: var(--bp-surface);
+  color: var(--bp-text-primary);
+  box-sizing: border-box;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

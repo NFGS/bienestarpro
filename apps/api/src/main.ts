@@ -17,6 +17,9 @@ async function bootstrap(): Promise<void> {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.enableCors({
     origin: (process.env.CORS_ORIGINS ?? 'http://localhost:5173').split(','),
+    // @fastify/cors por defecto solo permite GET,HEAD,POST: la interfaz usa
+    // PUT, PATCH y DELETE (preferencias, ajustes, plantillas, asignaciones).
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });
   app.enableShutdownHooks();
   const port = Number(process.env.PORT ?? 3001);

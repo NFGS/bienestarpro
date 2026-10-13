@@ -512,3 +512,94 @@ export function closeEvent(token: string, id: string): Promise<EventRow> {
     body: JSON.stringify({}),
   });
 }
+
+// ---------- Notificaciones (M2) ----------
+
+export interface NotificationPreferenceRow {
+  channels: string[] | null;
+  quietHoursStart: string | null;
+  quietHoursEnd: string | null;
+}
+
+export interface NotificationRow {
+  id: string;
+  type: string;
+  recipientName: string | null;
+  recipientEmail: string | null;
+  status: string;
+  channelEffective: string | null;
+  attempts: number;
+  lastError: string | null;
+  createdAt: string;
+}
+
+export interface TemplateRow {
+  id: string;
+  type: string;
+  channel: string;
+  version: number;
+  content: string;
+  status: string;
+  createdAt: string;
+}
+
+export function getMyPreferences(
+  token: string,
+): Promise<NotificationPreferenceRow> {
+  return request('/me/notification-preferences', {
+    headers: authHeaders(token),
+  });
+}
+
+export function updateMyPreferences(
+  token: string,
+  payload: {
+    channels?: string[];
+    quietHoursStart?: string;
+    quietHoursEnd?: string;
+  },
+): Promise<NotificationPreferenceRow> {
+  return request('/me/notification-preferences', {
+    method: 'PUT',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+}
+
+export function listEventNotifications(
+  token: string,
+  eventId: string,
+): Promise<NotificationRow[]> {
+  return request<NotificationRow[]>(`/events/${eventId}/notifications`, {
+    headers: authHeaders(token),
+  });
+}
+
+export function listTemplates(token: string): Promise<TemplateRow[]> {
+  return request<TemplateRow[]>('/notification-templates', {
+    headers: authHeaders(token),
+  });
+}
+
+export function createTemplate(
+  token: string,
+  payload: { type: string; channel: string; content: string },
+): Promise<TemplateRow> {
+  return request<TemplateRow>('/notification-templates', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updateTemplate(
+  token: string,
+  id: string,
+  content: string,
+): Promise<TemplateRow> {
+  return request<TemplateRow>(`/notification-templates/${id}`, {
+    method: 'PATCH',
+    headers: authHeaders(token),
+    body: JSON.stringify({ content }),
+  });
+}

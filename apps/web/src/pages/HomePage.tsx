@@ -3,7 +3,9 @@ import type { SessionUser } from '../lib/api';
 interface Props {
   user: SessionUser;
   onLogout: () => void;
-  onNavigate: (view: 'users' | 'audit' | 'groups' | 'events') => void;
+  onNavigate: (
+    view: 'users' | 'audit' | 'groups' | 'events' | 'preferences' | 'templates',
+  ) => void;
 }
 
 const ADMIN_ROLES = ['superadmin', 'coordinacion'];
@@ -25,42 +27,58 @@ export default function HomePage({ user, onLogout, onNavigate }: Props) {
           Sesión activa como <strong>{user.email}</strong> (rol: {user.role}).
           Los módulos del piloto llegan en las siguientes rebanadas.
         </p>
-        {EVENTS_ROLES.includes(user.role) ? (
-          <div className="home__actions">
-            <button
-              className="btn btn--secondary"
-              type="button"
-              onClick={() => onNavigate('events')}
-            >
-              Refrigerios
-            </button>
-            <button
-              className="btn btn--secondary"
-              type="button"
-              onClick={() => onNavigate('groups')}
-            >
-              Fichas
-            </button>
-            {ADMIN_ROLES.includes(user.role) ? (
-              <>
-                <button
-                  className="btn btn--secondary"
-                  type="button"
-                  onClick={() => onNavigate('users')}
-                >
-                  Usuarios
-                </button>
-                <button
-                  className="btn btn--secondary"
-                  type="button"
-                  onClick={() => onNavigate('audit')}
-                >
-                  Auditoría
-                </button>
-              </>
-            ) : null}
-          </div>
-        ) : null}
+        <div className="home__actions">
+          <button
+            className="btn btn--secondary"
+            type="button"
+            onClick={() => onNavigate('preferences')}
+          >
+            Preferencias
+          </button>
+          {EVENTS_ROLES.includes(user.role) ? (
+            <>
+              <button
+                className="btn btn--secondary"
+                type="button"
+                onClick={() => onNavigate('events')}
+              >
+                Refrigerios
+              </button>
+              <button
+                className="btn btn--secondary"
+                type="button"
+                onClick={() => onNavigate('groups')}
+              >
+                Fichas
+              </button>
+            </>
+          ) : null}
+          {ADMIN_ROLES.includes(user.role) ? (
+            <>
+              <button
+                className="btn btn--secondary"
+                type="button"
+                onClick={() => onNavigate('templates')}
+              >
+                Plantillas
+              </button>
+              <button
+                className="btn btn--secondary"
+                type="button"
+                onClick={() => onNavigate('users')}
+              >
+                Usuarios
+              </button>
+              <button
+                className="btn btn--secondary"
+                type="button"
+                onClick={() => onNavigate('audit')}
+              >
+                Auditoría
+              </button>
+            </>
+          ) : null}
+        </div>
       </section>
     </main>
   );
