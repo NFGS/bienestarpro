@@ -1,0 +1,22 @@
+name: bienestarpro-dev
+
+services:
+  postgres:
+    image: postgres:17
+    container_name: bienestarpro-postgres
+    environment:
+      POSTGRES_USER: bienestarpro
+      POSTGRES_PASSWORD: bienestarpro_dev
+      POSTGRES_DB: bienestarpro
+    ports:
+      - "127.0.0.1:5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bienestarpro -d bienestarpro"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres_data:

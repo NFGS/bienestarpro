@@ -9,19 +9,30 @@
     "start": "node dist/main.js",
     "lint": "oxlint",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "tsx src/db/seed.ts"
   },
   "dependencies": {
     "@bienestarpro/contracts": "workspace:*",
+    "@fastify/cors": "^11.3.1",
     "@nestjs/common": "^12.1.2",
     "@nestjs/core": "^12.1.2",
+    "@nestjs/jwt": "^12.0.2",
     "@nestjs/platform-fastify": "^12.1.2",
+    "argon2": "^0.45.1",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
+    "drizzle-orm": "^0.45.4",
+    "postgres": "^3.4.9",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2"
   },
   "devDependencies": {
     "@nestjs/testing": "^12.1.2",
     "@types/node": "^26.6.5",
+    "drizzle-kit": "^0.31.11",
     "oxlint": "^1.87.0",
     "tsx": "^4.23.15",
     "typescript": "^6.0.3",

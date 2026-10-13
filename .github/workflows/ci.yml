@@ -9,6 +9,23 @@ jobs:
   node:
     name: Node — lint, build, tipos y pruebas
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: bienestarpro
+          POSTGRES_PASSWORD: bienestarpro_dev
+          POSTGRES_DB: bienestarpro
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U bienestarpro"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://bienestarpro:bienestarpro_dev@127.0.0.1:5432/bienestarpro
+      JWT_SECRET: ci-secret-no-productivo
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,6 +38,8 @@ jobs:
           cache: pnpm
       - name: Instalar dependencias
         run: pnpm install --frozen-lockfile
+      - name: Migraciones (PostgreSQL)
+        run: pnpm --filter @bienestarpro/api db:migrate
       - name: Lint
         run: pnpm -r lint
       - name: Build (contratos primero por orden topologico)

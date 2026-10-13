@@ -24,6 +24,7 @@
 | ADR-0013 | Alcance del piloto: módulos completos y orden de construcción | Decisión tomada — redactada (borrador v0.1) |
 | ADR-0014 | Motor de investigación RAG local (Open Notebook) y política de conservación de archivos | Decisión tomada — redactada |
 | ADR-0015 | Actualizar Open Notebook de la imagen local parcheada v1.10.0 a la imagen oficial v1.15.0 pineada | Decisión tomada — redactada |
+| ADR-0016 | ORM y migraciones: Drizzle ORM con SQL versionado | Decisión tomada — redactada (borrador v0.1) |
 
 ## Bitácora resumida (contexto de las decisiones)
 
@@ -37,3 +38,4 @@
 | 2026-10-08 | Embeddings locales (qwen3-embedding:0.6b); chat en nube | Hardware limitado (15 GB RAM, GPU AMD) |
 | 2026-10-09 | Motor de investigación: Open Notebook en Docker; embeddings locales, chat en Google AI | Corpus con licencia se mantiene local; gateway anterior incompatible (`MissingSessionID`) |
 | 2026-10-12 | Open Notebook actualizado a imagen oficial v1.15.0 pineada (se depreca la imagen parcheada local) | 5 versiones de retraso; el parche Kimi quedó cubierto nativamente por `anthropic_compatible` |
+| 2026-10-13 | ORM del proyecto: Drizzle + drizzle-kit + postgres.js | Control del SQL para las políticas RLS (ADR-0003); sin binarios de motor en capas gratuitas |
