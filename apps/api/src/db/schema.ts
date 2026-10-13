@@ -1,4 +1,5 @@
 import {
+  boolean,
   date,
   index,
   integer,
@@ -479,3 +480,109 @@ export const notifications = pgTable(
     index('notifications_status_idx').on(table.status),
   ],
 );
+
+/**
+ * M7 — Encuestas (rebanada 7). Pulso institucional e investigación con
+ * anonimato por diseño (RN-08): en modo anónimo la respuesta NO guarda
+ * identificador de usuario; los desgloses por segmento se ocultan bajo el
+ * umbral mínimo de respuestas. La estructura se congela al publicar.
+ */
+
+export const surveys = pgTable('surveys', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  centerId: uuid('center_id')
+    .notNull()
+    .references(() => centers.id),
+  title: text('title').notNull(),
+  description: text('description').notNull(),
+  /** true = no se almacena el identificador del respondiente (RN-08). */
+  anonymous: boolean('anonymous').notNull().default(false),
+  /** borrador | publicada | cerrada */
+  status: text('status').notNull().default('borrador'),
+  /** Umbral de respuestas para mostrar desgloses por segmento. */
+  minResponses: integer('min_responses').notNull().default(5),
+  authorId: uuid('author_id')
+    .notNull()
+    .references(() => users.id),
+  publishedAt: timestamp('published_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const surveyQuestions = pgTable('survey_questions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  centerId: uuid('center_id')
+    .notNull()
+    .references(() => centers.id),
+  surveyId: uuid('survey_id')
+    .notNull()
+    .references(() => surveys.id),
+  position: integer('position').notNull(),
+  text: text('text').notNull(),
+  /** unica | multiple | escala */
+  type: text('type').notNull(),
+  required: boolean('required').notNull().default(true),
+  /** Solo para preguntas de escala. */
+  scaleMin: integer('scale_min'),
+  scaleMax: integer('scale_max'),
+});
+
+export const surveyOptions = pgTable('survey_options', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  centerId: uuid('center_id')
+    .notNull()
+    .references(() => centers.id),
+  questionId: uuid('question_id')
+    .notNull()
+    .references(() => surveyQuestions.id),
+  position: integer('position').notNull(),
+  label: text('label').notNull(),
+});
+
+export const surveySegments = pgTable('survey_segments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  centerId: uuid('center_id')
+    .notNull()
+    .references(() => centers.id),
+  surveyId: uuid('survey_id')
+    .notNull()
+    .references(() => surveys.id),
+  /** programa | ficha | jornada */
+  segmentType: text('segment_type').notNull(),
+  segmentValue: text('segment_value').notNull(),
+});
+
+export const surveyResponses = pgTable('survey_responses', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  centerId: uuid('center_id')
+    .notNull()
+    .references(() => centers.id),
+  surveyId: uuid('survey_id')
+    .notNull()
+    .references(() => surveys.id),
+  /** NULL en encuestas anónimas: jamás se almacena quién respondió (RN-08). */
+  learnerId: uuid('learner_id').references(() => learners.id),
+  /** Ficha del respondiente al momento de responder (segmento, no identidad). */
+  groupId: uuid('group_id').references(() => groups.id),
+  submittedAt: timestamp('submitted_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const surveyAnswers = pgTable('survey_answers', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  centerId: uuid('center_id')
+    .notNull()
+    .references(() => centers.id),
+  responseId: uuid('response_id')
+    .notNull()
+    .references(() => surveyResponses.id),
+  questionId: uuid('question_id')
+    .notNull()
+    .references(() => surveyQuestions.id),
+  /** Opción elegida (unica/multiple); NULL en preguntas de escala. */
+  optionId: uuid('option_id').references(() => surveyOptions.id),
+  /** Valor de escala; NULL en unica/multiple. */
+  scaleValue: integer('scale_value'),
+});

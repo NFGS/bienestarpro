@@ -120,6 +120,20 @@
       "when": 1791878138828,
       "tag": "0016_rls_m6_publications",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1791878149000,
+      "tag": "0017_fuzzy_vance_astro",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1791878150000,
+      "tag": "0018_rls_m7_surveys",
+      "breakpoints": true
     }
   ]
 }

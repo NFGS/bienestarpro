@@ -4,21 +4,17 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
+import { asc, desc, eq, inArray, sql } from 'drizzle-orm';
 import { AuditService } from '../audit/audit.service';
 import type { AuthenticatedUser } from '../auth/auth.service';
-import { DbService, type Database } from '../db/db.module';
+import { resolveSegmentLearners, validateSegment } from '../common/segments';
+import { DbService } from '../db/db.module';
 import {
-  groups,
-  learners,
-  programs,
   publicationMetrics,
   publicationSegments,
   publications,
 } from '../db/schema';
-import { JOURNEYS } from '../directory/dto/groups.dto';
 import { NotificationsService } from '../notifications/notifications.service';
-import type { EnqueueRecipient } from '../notifications/notifications.service';
 import {
   CreatePublicationDto,
   PublicationMetricDto,
@@ -29,8 +25,6 @@ import {
 function todayInColombia(): string {
   return new Date(Date.now() - 5 * 3600 * 1000).toISOString().slice(0, 10);
 }
-
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * CU-25 / CU-26 — RF-30 a RF-32: noticias y campañas (M6).
@@ -94,45 +88,11 @@ export class PublicationsService {
     });
   }
 
-  private async validateSegment(
-    db: Database,
-    segment: { segmentType: string; segmentValue: string },
-  ): Promise<void> {
-    if (segment.segmentType === 'jornada') {
-      if (!JOURNEYS.includes(segment.segmentValue as (typeof JOURNEYS)[number])) {
-        throw new BadRequestException('Jornada inválida');
-      }
-      return;
-    }
-    if (!UUID_PATTERN.test(segment.segmentValue)) {
-      throw new BadRequestException('Identificador de segmento inválido');
-    }
-    if (segment.segmentType === 'ficha') {
-      const [group] = await db
-        .select()
-        .from(groups)
-        .where(eq(groups.id, segment.segmentValue))
-        .limit(1);
-      if (!group) {
-        throw new BadRequestException('La ficha indicada no existe');
-      }
-      return;
-    }
-    const [program] = await db
-      .select()
-      .from(programs)
-      .where(eq(programs.id, segment.segmentValue))
-      .limit(1);
-    if (!program) {
-      throw new BadRequestException('El programa indicado no existe');
-    }
-  }
-
   async create(dto: CreatePublicationDto, actor: AuthenticatedUser) {
     const centerId = this.tenant(actor);
     const created = await this.dbService.withTenant(centerId, async (db) => {
       for (const segment of dto.segments ?? []) {
-        await this.validateSegment(db, segment);
+        await validateSegment(db, segment);
       }
       const [row] = await db
         .insert(publications)
@@ -230,7 +190,9 @@ export class PublicationsService {
         .select()
         .from(publicationSegments)
         .where(eq(publicationSegments.publicationId, id));
-      const recipients = await this.resolveRecipients(db, segments);
+      const recipients = (await resolveSegmentLearners(db, segments)).map(
+        (learner) => ({ name: learner.fullName, email: learner.email }),
+      );
       const [updated] = await db
         .update(publications)
         .set({ status: 'publicada', publishedAt: new Date() })
@@ -265,63 +227,6 @@ export class PublicationsService {
       recipients: result.recipients.length,
       notificationsQueued: enqueued.queued,
     };
-  }
-
-  /** Resuelve los aprendices activos del segmento (sin segmentos = todo el centro). */
-  private async resolveRecipients(
-    db: Database,
-    segments: { segmentType: string; segmentValue: string }[],
-  ): Promise<EnqueueRecipient[]> {
-    const map = new Map<string, EnqueueRecipient>();
-    const add = (learner: {
-      id: string;
-      fullName: string;
-      email: string | null;
-    }): void => {
-      map.set(learner.id, { name: learner.fullName, email: learner.email });
-    };
-
-    if (segments.length === 0) {
-      const all = await db
-        .select()
-        .from(learners)
-        .where(eq(learners.status, 'activo'));
-      for (const learner of all) {
-        add(learner);
-      }
-      return [...map.values()];
-    }
-
-    for (const segment of segments) {
-      if (segment.segmentType === 'ficha') {
-        const rows = await db
-          .select()
-          .from(learners)
-          .where(
-            and(
-              eq(learners.groupId, segment.segmentValue),
-              eq(learners.status, 'activo'),
-            ),
-          );
-        for (const learner of rows) {
-          add(learner);
-        }
-        continue;
-      }
-      const column =
-        segment.segmentType === 'jornada' ? groups.journey : groups.programId;
-      const rows = await db
-        .select({ learner: learners })
-        .from(learners)
-        .innerJoin(groups, eq(learners.groupId, groups.id))
-        .where(
-          and(eq(column, segment.segmentValue), eq(learners.status, 'activo')),
-        );
-      for (const row of rows) {
-        add(row.learner);
-      }
-    }
-    return [...map.values()];
   }
 
   /** CU-26: métrica agregada por día (sin identidad del lector). */

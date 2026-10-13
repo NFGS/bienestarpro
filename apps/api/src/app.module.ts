@@ -8,6 +8,7 @@ import { EventsModule } from './events/events.module';
 import { HealthModule } from './health/health.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PublicationsModule } from './publications/publications.module';
+import { SurveysModule } from './surveys/surveys.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -22,6 +23,7 @@ import { UsersModule } from './users/users.module';
     EventsModule,
     NotificationsModule,
     PublicationsModule,
+    SurveysModule,
   ],
 })
 export class AppModule {}
