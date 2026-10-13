@@ -287,3 +287,111 @@ export const deliveries = pgTable('deliveries', {
     .notNull()
     .defaultNow(),
 });
+
+/**
+ * M2 — Hub de notificaciones (rebanada 4). Patrón outbox (ADR-0004):
+ * los eventos escriben en `outbox`; el relay publica a la cola y el worker
+ * entrega por adaptadores con cascada push → WhatsApp → correo.
+ */
+
+export const notificationTemplates = pgTable(
+  'notification_templates',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    centerId: uuid('center_id')
+      .notNull()
+      .references(() => centers.id),
+    type: text('type').notNull(),
+    channel: text('channel').notNull(),
+    version: integer('version').notNull(),
+    content: text('content').notNull(),
+    /** vigente | historica */
+    status: text('status').notNull().default('vigente'),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    unique('notification_templates_version_unique').on(
+      table.centerId,
+      table.type,
+      table.channel,
+      table.version,
+    ),
+    index('notification_templates_lookup_idx').on(
+      table.centerId,
+      table.type,
+      table.channel,
+    ),
+  ],
+);
+
+export const notificationPreferences = pgTable('notification_preferences', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  centerId: uuid('center_id')
+    .notNull()
+    .references(() => centers.id),
+  userId: uuid('user_id')
+    .notNull()
+    .unique()
+    .references(() => users.id),
+  /** Canales preferidos en orden (null = todos por defecto). */
+  channels: jsonb('channels'),
+  quietHoursStart: text('quiet_hours_start'),
+  quietHoursEnd: text('quiet_hours_end'),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const outbox = pgTable('outbox', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  centerId: uuid('center_id')
+    .notNull()
+    .references(() => centers.id),
+  eventType: text('event_type').notNull(),
+  payload: jsonb('payload').notNull(),
+  /** pendiente | publicado */
+  status: text('status').notNull().default('pendiente'),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  publishedAt: timestamp('published_at', { withTimezone: true }),
+});
+
+export const notifications = pgTable(
+  'notifications',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    centerId: uuid('center_id')
+      .notNull()
+      .references(() => centers.id),
+    outboxId: uuid('outbox_id')
+      .notNull()
+      .references(() => outbox.id),
+    eventId: uuid('event_id').references(() => events.id),
+    type: text('type').notNull(),
+    recipientUserId: uuid('recipient_user_id').references(() => users.id),
+    recipientName: text('recipient_name'),
+    recipientEmail: text('recipient_email'),
+    recipientPhone: text('recipient_phone'),
+    channelAttempted: text('channel_attempted'),
+    channelEffective: text('channel_effective'),
+    /** pendiente | sent | delivered | read | failed */
+    status: text('status').notNull().default('pendiente'),
+    templateVersion: integer('template_version'),
+    attempts: integer('attempts').notNull().default(0),
+    lastError: text('last_error'),
+    payload: jsonb('payload').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index('notifications_event_idx').on(table.eventId),
+    index('notifications_status_idx').on(table.status),
+  ],
+);

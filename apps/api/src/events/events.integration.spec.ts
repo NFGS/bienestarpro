@@ -176,6 +176,8 @@ describe('Refrigerios M1 (RF-12 a RF-21)', () => {
 
   afterAll(async () => {
     await withContext(async (tx) => {
+      await tx`delete from notifications where center_id = ${centerId}`;
+      await tx`delete from outbox where center_id = ${centerId}`;
       await tx`delete from deliveries where center_id = ${centerId}`;
       await tx`delete from event_participants where center_id = ${centerId}`;
       await tx`delete from event_groups where center_id = ${centerId}`;
@@ -186,7 +188,8 @@ describe('Refrigerios M1 (RF-12 a RF-21)', () => {
       await tx`delete from programs where center_id = ${centerId}`;
     });
     await db.delete(users).where(inArray(users.email, Object.values(EMAILS)));
-    await db.delete(centers).where(inArray(centers.name, ['Centro M1 Prueba']));
+    // Solo el centro de esta corrida (los de corridas previas no se tocan).
+    await db.delete(centers).where(inArray(centers.id, [centerId]));
     await app.close();
     await sql.end();
   });

@@ -10,6 +10,8 @@ import { and, asc, count, desc, eq, inArray, sql } from 'drizzle-orm';
 import { AuditService } from '../audit/audit.service';
 import type { AuthenticatedUser } from '../auth/auth.service';
 import { DbService } from '../db/db.module';
+import { NotificationsService } from '../notifications/notifications.service';
+import type { EnqueueRecipient } from '../notifications/notifications.service';
 import {
   deliveries,
   eventGroups,
@@ -27,6 +29,12 @@ import {
   PublishEventDto,
 } from './dto/events.dto';
 
+/** Enlace de confirmación que viaja en la convocatoria (RF-15). */
+function buildConfirmUrl(qrToken: string): string {
+  const base = process.env.PUBLIC_CONFIRM_BASE_URL;
+  return base ? `${base}?token=${qrToken}` : `token de confirmación: ${qrToken}`;
+}
+
 /**
  * CU-10 a CU-17 / RF-12 a RF-21 — Refrigerios (M1).
  * Reglas provisionales hasta el discovery: un refrigerio por aprendiz activo
@@ -38,6 +46,7 @@ export class EventsService {
   constructor(
     private readonly dbService: DbService,
     private readonly audit: AuditService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   private tenant(actor: AuthenticatedUser): string {
@@ -96,6 +105,7 @@ export class EventsService {
     actor: AuthenticatedUser,
   ) {
     const centerId = this.tenant(actor);
+    const recipients: EnqueueRecipient[] = [];
     const result = await this.dbService.withTenant(centerId, async (db) => {
       const [event] = await db
         .select()
@@ -151,11 +161,17 @@ export class EventsService {
           learnerCount: activeLearners.length,
         });
         for (const learner of activeLearners) {
+          const qrToken = randomUUID();
           participants.push({
             centerId,
             eventId: id,
             learnerId: learner.id,
-            qrToken: randomUUID(),
+            qrToken,
+          });
+          recipients.push({
+            name: learner.fullName,
+            email: learner.email ?? null,
+            payload: { confirmUrl: buildConfirmUrl(qrToken) },
           });
         }
       }
@@ -199,8 +215,28 @@ export class EventsService {
     await this.auditChange(actor, 'event.published', id, centerId, {
       participants: result.participants,
     });
-    // NOTA: la convocatoria multicanal (M2, rebanada 4) se conectará aquí.
-    return result;
+
+    // RF-14 / RF-22: la convocatoria entra al hub multicanal por el outbox.
+    const enqueued = await this.notifications.enqueue({
+      centerId,
+      eventType: 'evento_convocatoria',
+      eventId: id,
+      recipients,
+      payload: {
+        eventId: id,
+        date: result.event.date,
+        journey: result.event.journey,
+        critical: false,
+      },
+    });
+    await this.auditChange(
+      actor,
+      'event.notifications_enqueued',
+      id,
+      centerId,
+      { queued: enqueued.queued },
+    );
+    return { ...result, notificationsQueued: enqueued.queued };
   }
 
   // ---------- Consultas ----------
