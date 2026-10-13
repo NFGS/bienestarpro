@@ -19,6 +19,7 @@ import { Roles } from '../auth/roles.decorator';
 import type { AppRole } from '../auth/roles.constants';
 import { RolesGuard } from '../auth/roles.guard';
 import { DirectoryService } from './directory.service';
+import { EmergencyContactsService } from './emergency-contacts.service';
 import {
   AssignInstructorDto,
   CreateGroupDto,
@@ -32,6 +33,10 @@ import {
   UpdateLearnerDto,
 } from './dto/learners.dto';
 import { CreateProgramDto, UpdateProgramDto } from './dto/programs.dto';
+import {
+  CreateEmergencyContactDto,
+  UpdateEmergencyContactDto,
+} from './dto/emergency-contacts.dto';
 
 const READ_ROLES: AppRole[] = [
   'superadmin',
@@ -44,7 +49,10 @@ const MANAGE_ROLES: AppRole[] = ['superadmin', 'coordinacion'];
 @Controller()
 @UseGuards(JwtAuthGuard, RolesGuard, RequireTotpGuard)
 export class DirectoryController {
-  constructor(private readonly directory: DirectoryService) {}
+  constructor(
+    private readonly directory: DirectoryService,
+    private readonly emergencyContacts: EmergencyContactsService,
+  ) {}
 
   // ---- Programas ----
 
@@ -217,6 +225,60 @@ export class DirectoryController {
   ) {
     return this.directory.revokeConsent(
       consentId,
+      request.user as AuthenticatedUser,
+    );
+  }
+
+  // ---- Contactos de emergencia (M10: RF-28/29) ----
+
+  @Post('learners/:id/emergency-contacts')
+  @Roles(...MANAGE_ROLES)
+  createEmergencyContact(
+    @Param('id', ParseUUIDPipe) learnerId: string,
+    @Body() dto: CreateEmergencyContactDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.emergencyContacts.create(
+      learnerId,
+      dto,
+      request.user as AuthenticatedUser,
+    );
+  }
+
+  @Get('learners/:id/emergency-contacts')
+  @Roles(...MANAGE_ROLES)
+  listEmergencyContacts(
+    @Param('id', ParseUUIDPipe) learnerId: string,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.emergencyContacts.list(
+      learnerId,
+      request.user as AuthenticatedUser,
+    );
+  }
+
+  @Patch('emergency-contacts/:id')
+  @Roles(...MANAGE_ROLES)
+  updateEmergencyContact(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateEmergencyContactDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.emergencyContacts.update(
+      id,
+      dto,
+      request.user as AuthenticatedUser,
+    );
+  }
+
+  @Delete('emergency-contacts/:id')
+  @Roles(...MANAGE_ROLES)
+  removeEmergencyContact(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.emergencyContacts.remove(
+      id,
       request.user as AuthenticatedUser,
     );
   }

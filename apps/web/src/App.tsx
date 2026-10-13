@@ -93,6 +93,7 @@ function App() {
     return (
       <GroupDetailPage
         token={session.accessToken}
+        role={session.user.role}
         groupId={selectedGroupId}
         onBack={() => setView('groups')}
       />

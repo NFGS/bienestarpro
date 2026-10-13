@@ -189,6 +189,27 @@ export const consents = pgTable('consents', {
 });
 
 /**
+ * M10 — Contactos de emergencia (rebanada 5). Datos sensibles: registro solo
+ * con consentimiento vigente, acceso por rol mínimo y CADA LECTURA auditada
+ * (RF-28/29, ADR-0011 D1).
+ */
+export const emergencyContacts = pgTable('emergency_contacts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  centerId: uuid('center_id')
+    .notNull()
+    .references(() => centers.id),
+  learnerId: uuid('learner_id')
+    .notNull()
+    .references(() => learners.id),
+  name: text('name').notNull(),
+  relationship: text('relationship').notNull(),
+  phone: text('phone').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+/**
  * M1 — Refrigerios (rebanada 3). Tablas multi-tenant con RLS
  * (ver migración 0008: políticas + función de confirmación pública).
  */

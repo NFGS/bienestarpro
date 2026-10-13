@@ -2,9 +2,12 @@ import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import {
   assignInstructor,
+  createEmergencyContact,
   createLearner,
+  deleteEmergencyContact,
   getGroupDetail,
   grantConsent,
+  listEmergencyContacts,
   listUsers,
   removeInstructor,
   revokeConsent,
@@ -12,14 +15,17 @@ import {
 } from '../lib/api';
 import type {
   ConsentRow,
+  EmergencyContactRow,
   GroupDetail,
   UserRow,
 } from '../lib/api';
 
 const POLICY_VERSION = 'aviso-privacidad-v1';
+const CONTACTS_ROLES = ['superadmin', 'coordinacion'];
 
 interface Props {
   token: string;
+  role: string;
   groupId: string;
   onBack: () => void;
 }
@@ -35,7 +41,7 @@ function consentState(
   return list.some((consent) => consent.revokedAt === null) ? 'vigente' : 'revocado';
 }
 
-export default function GroupDetailPage({ token, groupId, onBack }: Props) {
+export default function GroupDetailPage({ token, role, groupId, onBack }: Props) {
   const [detail, setDetail] = useState<GroupDetail | null>(null);
   const [users, setUsers] = useState<UserRow[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -51,6 +57,14 @@ export default function GroupDetailPage({ token, groupId, onBack }: Props) {
     instructorId: '',
     roleInGroup: 'director',
   });
+  const [expandedLearner, setExpandedLearner] = useState<string | null>(null);
+  const [contacts, setContacts] = useState<EmergencyContactRow[]>([]);
+  const [contactForm, setContactForm] = useState({
+    name: '',
+    relationship: '',
+    phone: '',
+  });
+  const canSeeContacts = CONTACTS_ROLES.includes(role);
 
   const load = useCallback(async () => {
     try {
@@ -157,6 +171,56 @@ export default function GroupDetailPage({ token, groupId, onBack }: Props) {
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo retirar el instructor.');
+    }
+  }
+
+  async function toggleContacts(learnerId: string): Promise<void> {
+    if (expandedLearner === learnerId) {
+      setExpandedLearner(null);
+      return;
+    }
+    setError(null);
+    setNotice(null);
+    try {
+      setContacts(await listEmergencyContacts(token, learnerId));
+      setExpandedLearner(learnerId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudieron cargar los contactos.');
+    }
+  }
+
+  async function handleAddContact(event: FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+    if (!expandedLearner) {
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    setNotice(null);
+    try {
+      await createEmergencyContact(token, expandedLearner, contactForm);
+      setNotice('Contacto registrado');
+      setContactForm({ name: '', relationship: '', phone: '' });
+      setContacts(await listEmergencyContacts(token, expandedLearner));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo registrar el contacto.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function removeContact(contactId: string): Promise<void> {
+    if (!expandedLearner) {
+      return;
+    }
+    setError(null);
+    setNotice(null);
+    try {
+      await deleteEmergencyContact(token, contactId);
+      setNotice('Contacto eliminado');
+      setContacts(await listEmergencyContacts(token, expandedLearner));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo eliminar el contacto.');
     }
   }
 
@@ -326,7 +390,112 @@ export default function GroupDetailPage({ token, groupId, onBack }: Props) {
                     >
                       {learner.status === 'activo' ? 'Retirar' : 'Reactivar'}
                     </button>
+                    {canSeeContacts ? (
+                      <button
+                        className="btn btn--secondary btn--small"
+                        type="button"
+                        onClick={() => void toggleContacts(learner.id)}
+                      >
+                        {expandedLearner === learner.id
+                          ? 'Ocultar contactos'
+                          : 'Contactos de emergencia'}
+                      </button>
+                    ) : null}
                   </div>
+                  {expandedLearner === learner.id ? (
+                    <div className="contacts-panel">
+                      {contacts.length === 0 ? (
+                        <p className="muted">
+                          Sin contactos registrados (requiere consentimiento
+                          vigente).
+                        </p>
+                      ) : (
+                        <ul className="admin__list">
+                          {contacts.map((contact) => (
+                            <li key={contact.id} className="admin__row">
+                              <div className="admin__info">
+                                <strong>{contact.name}</strong>
+                                <span className="muted">
+                                  {contact.relationship} · {contact.phone}
+                                </span>
+                              </div>
+                              <button
+                                className="btn btn--secondary btn--small"
+                                type="button"
+                                onClick={() => void removeContact(contact.id)}
+                              >
+                                Eliminar
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      <form
+                        className="admin__form"
+                        onSubmit={(event) => void handleAddContact(event)}
+                        noValidate
+                      >
+                        <div className="field">
+                          <label htmlFor={`contact-name-${learner.id}`}>
+                            Nombre del contacto
+                          </label>
+                          <input
+                            id={`contact-name-${learner.id}`}
+                            value={contactForm.name}
+                            onChange={(event) =>
+                              setContactForm({
+                                ...contactForm,
+                                name: event.target.value,
+                              })
+                            }
+                            required
+                            minLength={3}
+                          />
+                        </div>
+                        <div className="field">
+                          <label htmlFor={`contact-rel-${learner.id}`}>
+                            Parentesco
+                          </label>
+                          <input
+                            id={`contact-rel-${learner.id}`}
+                            value={contactForm.relationship}
+                            onChange={(event) =>
+                              setContactForm({
+                                ...contactForm,
+                                relationship: event.target.value,
+                              })
+                            }
+                            required
+                            minLength={3}
+                          />
+                        </div>
+                        <div className="field">
+                          <label htmlFor={`contact-phone-${learner.id}`}>
+                            Teléfono
+                          </label>
+                          <input
+                            id={`contact-phone-${learner.id}`}
+                            value={contactForm.phone}
+                            onChange={(event) =>
+                              setContactForm({
+                                ...contactForm,
+                                phone: event.target.value,
+                              })
+                            }
+                            required
+                            minLength={7}
+                          />
+                        </div>
+                        <button
+                          className="btn btn--primary"
+                          type="submit"
+                          disabled={saving}
+                        >
+                          Agregar contacto
+                        </button>
+                      </form>
+                    </div>
+                  ) : null}
                 </li>
               );
             })}

@@ -342,6 +342,52 @@ export function revokeConsent(
   });
 }
 
+// ---------- Contactos de emergencia (M10) ----------
+
+export interface EmergencyContactRow {
+  id: string;
+  learnerId: string;
+  name: string;
+  relationship: string;
+  phone: string;
+  createdAt: string;
+}
+
+export function listEmergencyContacts(
+  token: string,
+  learnerId: string,
+): Promise<EmergencyContactRow[]> {
+  return request<EmergencyContactRow[]>(
+    `/learners/${learnerId}/emergency-contacts`,
+    { headers: authHeaders(token) },
+  );
+}
+
+export function createEmergencyContact(
+  token: string,
+  learnerId: string,
+  payload: { name: string; relationship: string; phone: string },
+): Promise<EmergencyContactRow> {
+  return request<EmergencyContactRow>(
+    `/learners/${learnerId}/emergency-contacts`,
+    {
+      method: 'POST',
+      headers: authHeaders(token),
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export function deleteEmergencyContact(
+  token: string,
+  contactId: string,
+): Promise<{ ok: boolean }> {
+  return request(`/emergency-contacts/${contactId}`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
+  });
+}
+
 // ---------- Refrigerios (M1) ----------
 
 export interface EventRow {
