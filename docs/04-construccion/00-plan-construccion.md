@@ -33,11 +33,13 @@ Convertir los borradores de requisitos, arquitectura y UX en software verificabl
 - [x] `docs/04-construccion/` y este plan.
 - [x] Monorepo pnpm: `pnpm-workspace.yaml`, `package.json` raíz, `engines`, `.nvmrc`, `.editorconfig`.
 - [x] Shell web (`apps/web`): React 19 + TypeScript + Vite (base de la PWA; Workbox entra con la rebanada 3, cuando hay flujos offline que cachear).
-- [ ] Esqueleto API (`apps/api`): NestJS + Fastify, módulo de salud.
-- [ ] Esqueleto sidecar (`apps/ai`): FastAPI con `/health`.
-- [ ] `packages/contracts`: primera superficie (tipos compartidos de salud/versión).
-- [ ] Gates en verde desde el primer commit: `pnpm -r lint`, `pnpm -r typecheck`, `pnpm -r test`.
-- [ ] CI (GitHub Actions): lint + typecheck + pruebas en cada push.
+- [x] Esqueleto API (`apps/api`): NestJS 12 + Fastify, módulo de salud (prueba 1/1 y arranque real verificado con curl a `/api/health`).
+- [x] Esqueleto sidecar (`apps/ai`): FastAPI con `/health` (pytest 1/1, ruff limpio).
+- [x] `packages/contracts`: primera superficie (`HealthResponse` y `API_PREFIX`).
+- [x] Gates en verde: `pnpm -r lint`, `pnpm -r build`, `pnpm -r typecheck`, `pnpm -r test` + ruff/pytest.
+- [x] CI (GitHub Actions): lint + build + tipos + pruebas en cada push (Node 24 y Python 3.14).
+
+**Notas de tooling:** las pruebas de la API usan **Vitest** (NestJS 12 publica paquetes ESM y Jest 29 no puede consumirlos; Vitest es ESM-nativo y consistente con Vite, ya presente en la web). El postinstall de `esbuild` (dependencia de `tsx`) está autorizado en `pnpm-workspace.yaml` (`allowBuilds`); TypeScript queda fijado en la línea 6.x (la 7 eliminó `moduleResolution: node10`, y los tsconfigs ya usan `nodenext`).
 
 ## 4. Definition of Done (por rebanada)
 

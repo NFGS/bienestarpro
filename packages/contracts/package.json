@@ -1,0 +1,17 @@
+{
+  "name": "@bienestarpro/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Superficie pública compartida del monorepo (tipos y constantes de la API)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "oxlint"
+  },
+  "devDependencies": {
+    "oxlint": "^1.87.0",
+    "typescript": "^6.0.3"
+  }
+}

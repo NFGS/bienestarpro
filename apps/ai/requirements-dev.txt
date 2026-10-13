@@ -1,0 +1,4 @@
+# Dependencias de desarrollo del sidecar (lint y pruebas).
+pytest>=8
+httpx>=0.27
+ruff>=0.6
