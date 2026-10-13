@@ -310,6 +310,69 @@ export const deliveries = pgTable('deliveries', {
 });
 
 /**
+ * M6 — Noticias y campañas (rebanada 6). Publicación segmentada con
+ * analítica AGREGADA por día (sin lectores individuales — privacidad por
+ * diseño, ADR-0011).
+ */
+
+export const publications = pgTable('publications', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  centerId: uuid('center_id')
+    .notNull()
+    .references(() => centers.id),
+  /** noticia | campana */
+  type: text('type').notNull(),
+  title: text('title').notNull(),
+  content: text('content').notNull(),
+  /** borrador | publicada */
+  status: text('status').notNull().default('borrador'),
+  publishedAt: timestamp('published_at', { withTimezone: true }),
+  authorId: uuid('author_id')
+    .notNull()
+    .references(() => users.id),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const publicationSegments = pgTable('publication_segments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  centerId: uuid('center_id')
+    .notNull()
+    .references(() => centers.id),
+  publicationId: uuid('publication_id')
+    .notNull()
+    .references(() => publications.id),
+  /** programa | ficha | jornada */
+  segmentType: text('segment_type').notNull(),
+  /** UUID del programa/ficha o nombre de la jornada. */
+  segmentValue: text('segment_value').notNull(),
+});
+
+export const publicationMetrics = pgTable(
+  'publication_metrics',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    centerId: uuid('center_id')
+      .notNull()
+      .references(() => centers.id),
+    publicationId: uuid('publication_id')
+      .notNull()
+      .references(() => publications.id),
+    day: date('day', { mode: 'string' }).notNull(),
+    views: integer('views').notNull().default(0),
+    reads: integer('reads').notNull().default(0),
+    clicks: integer('clicks').notNull().default(0),
+  },
+  (table) => [
+    unique('publication_metrics_day_unique').on(
+      table.publicationId,
+      table.day,
+    ),
+  ],
+);
+
+/**
  * M2 — Hub de notificaciones (rebanada 4). Patrón outbox (ADR-0004):
  * los eventos escriben en `outbox`; el relay publica a la cola y el worker
  * entrega por adaptadores con cascada push → WhatsApp → correo.

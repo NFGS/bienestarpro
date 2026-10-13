@@ -4,7 +4,14 @@ interface Props {
   user: SessionUser;
   onLogout: () => void;
   onNavigate: (
-    view: 'users' | 'audit' | 'groups' | 'events' | 'preferences' | 'templates',
+    view:
+      | 'users'
+      | 'audit'
+      | 'groups'
+      | 'events'
+      | 'preferences'
+      | 'templates'
+      | 'publications',
   ) => void;
 }
 
@@ -34,6 +41,13 @@ export default function HomePage({ user, onLogout, onNavigate }: Props) {
             onClick={() => onNavigate('preferences')}
           >
             Preferencias
+          </button>
+          <button
+            className="btn btn--secondary"
+            type="button"
+            onClick={() => onNavigate('publications')}
+          >
+            Noticias
           </button>
           {EVENTS_ROLES.includes(user.role) ? (
             <>

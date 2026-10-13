@@ -19,7 +19,7 @@ BienestarPro es una plataforma web multi-plataforma (PWA) que automatiza la asig
 | 1 — Requisitos | Borrador v0.1 (ERS, casos de uso, historias, diagrama) |
 | 2 — Arquitectura | Borrador v0.1 (ADRs, modelo de datos, threat model, referencia) |
 | 3 — UX | En curso (revisión de muestras + design system v0.1) |
-| 4 — Construcción + piloto | En curso (rebanada 5 completa: M10 Contactos; siguiente: M6 Noticias) |
+| 4 — Construcción + piloto | En curso (rebanada 6 completa: M6 Noticias; siguiente: M7 Encuestas) |
 | 5 — Post-piloto (portátiles, IA) | Pendiente |
 | 6 — Cierre y productos SENNOVA | Pendiente |
 

@@ -649,3 +649,67 @@ export function updateTemplate(
     body: JSON.stringify({ content }),
   });
 }
+
+// ---------- Noticias y campañas (M6) ----------
+
+export interface PublicationSegment {
+  segmentType: string;
+  segmentValue: string;
+}
+
+export interface PublicationRow {
+  id: string;
+  type: string;
+  title: string;
+  content: string;
+  status: string;
+  publishedAt: string | null;
+  createdAt: string;
+  segments: PublicationSegment[];
+  totals: { views: number; reads: number; clicks: number };
+}
+
+export function listPublications(token: string): Promise<PublicationRow[]> {
+  return request<PublicationRow[]>('/publications', {
+    headers: authHeaders(token),
+  });
+}
+
+export function createPublication(
+  token: string,
+  payload: {
+    type: string;
+    title: string;
+    content: string;
+    segments?: PublicationSegment[];
+  },
+): Promise<PublicationRow> {
+  return request<PublicationRow>('/publications', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+}
+
+export function publishPublication(
+  token: string,
+  id: string,
+): Promise<PublicationRow & { recipients: number; notificationsQueued: number }> {
+  return request(`/publications/${id}/publish`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({}),
+  });
+}
+
+export function addPublicationMetric(
+  token: string,
+  id: string,
+  event: 'view' | 'read' | 'click',
+): Promise<{ ok: boolean }> {
+  return request(`/publications/${id}/metrics`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ event }),
+  });
+}
