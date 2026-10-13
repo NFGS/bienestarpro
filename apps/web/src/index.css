@@ -344,6 +344,42 @@ h2 {
   flex-wrap: wrap;
 }
 
+/* Entrega de refrigerios */
+.counters {
+  display: flex;
+  gap: var(--bp-space-5);
+  justify-content: space-around;
+  margin-top: var(--bp-space-3);
+}
+
+.counters__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.counters__item strong {
+  font-size: 1.75rem;
+  color: var(--bp-primary);
+}
+
+.scan-input {
+  font-size: 1.125rem;
+  letter-spacing: 0.02em;
+}
+
+.quota-input {
+  width: 84px;
+  min-height: 44px;
+  padding: 0 var(--bp-space-2);
+  font-size: 1rem;
+  border: 1px solid var(--bp-border-input);
+  border-radius: var(--bp-radius-sm);
+  background: var(--bp-surface);
+  color: var(--bp-text-primary);
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

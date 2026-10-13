@@ -3,11 +3,11 @@ import type { SessionUser } from '../lib/api';
 interface Props {
   user: SessionUser;
   onLogout: () => void;
-  onNavigate: (view: 'users' | 'audit' | 'groups') => void;
+  onNavigate: (view: 'users' | 'audit' | 'groups' | 'events') => void;
 }
 
 const ADMIN_ROLES = ['superadmin', 'coordinacion'];
-const DIRECTORY_ROLES = ['superadmin', 'coordinacion', 'instructor', 'auxiliar'];
+const EVENTS_ROLES = ['superadmin', 'coordinacion', 'instructor', 'auxiliar'];
 
 export default function HomePage({ user, onLogout, onNavigate }: Props) {
   return (
@@ -25,8 +25,15 @@ export default function HomePage({ user, onLogout, onNavigate }: Props) {
           Sesión activa como <strong>{user.email}</strong> (rol: {user.role}).
           Los módulos del piloto llegan en las siguientes rebanadas.
         </p>
-        {DIRECTORY_ROLES.includes(user.role) ? (
+        {EVENTS_ROLES.includes(user.role) ? (
           <div className="home__actions">
+            <button
+              className="btn btn--secondary"
+              type="button"
+              onClick={() => onNavigate('events')}
+            >
+              Refrigerios
+            </button>
             <button
               className="btn btn--secondary"
               type="button"

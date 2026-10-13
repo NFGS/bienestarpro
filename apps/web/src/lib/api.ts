@@ -341,3 +341,174 @@ export function revokeConsent(
     headers: authHeaders(token),
   });
 }
+
+// ---------- Refrigerios (M1) ----------
+
+export interface EventRow {
+  id: string;
+  date: string;
+  journey: string;
+  status: string;
+  planned?: number;
+  participantsByStatus?: Record<string, number>;
+  confirmationDeadline: string | null;
+  cafeteriaPreparedAt: string | null;
+  closeSummary: Record<string, unknown> | null;
+}
+
+export interface EventGroupRow {
+  id: string;
+  groupId: string;
+  groupCode: string;
+  calculatedQuota: number;
+  adjustedQuota: number | null;
+}
+
+export interface EventDetail extends EventRow {
+  groups: EventGroupRow[];
+  participantsByStatus: Record<string, number>;
+  deliveriesTotal: number;
+}
+
+export interface CafeteriaSummary {
+  eventId: string;
+  date: string;
+  journey: string;
+  status: string;
+  preparedAt: string | null;
+  confirmed: number;
+  delivered: number;
+  totalToPrepare: number;
+  groups: {
+    eventGroupId: string;
+    groupCode: string;
+    calculatedQuota: number;
+    effectiveQuota: number;
+  }[];
+}
+
+export interface ParticipantSearch {
+  participantId: string;
+  learnerId: string;
+  fullName: string;
+  document: string;
+  status: string;
+  confirmed: boolean;
+}
+
+export interface DeliveryResult {
+  delivery: { id: string; method: string; participantId: string };
+  idempotent: boolean;
+}
+
+export function listEvents(token: string, status?: string): Promise<EventRow[]> {
+  return request<EventRow[]>(`/events${status ? `?status=${status}` : ''}`, {
+    headers: authHeaders(token),
+  });
+}
+
+export function createEvent(
+  token: string,
+  payload: { date: string; journey: string },
+): Promise<EventRow> {
+  return request<EventRow>('/events', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getEventDetail(
+  token: string,
+  id: string,
+): Promise<EventDetail> {
+  return request<EventDetail>(`/events/${id}`, {
+    headers: authHeaders(token),
+  });
+}
+
+export function publishEvent(
+  token: string,
+  id: string,
+): Promise<{ participants: number }> {
+  return request(`/events/${id}/publish`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({}),
+  });
+}
+
+export function adjustQuota(
+  token: string,
+  eventId: string,
+  eventGroupId: string,
+  quota: number,
+  reason: string,
+): Promise<EventGroupRow> {
+  return request<EventGroupRow>(
+    `/events/${eventId}/groups/${eventGroupId}/quota`,
+    {
+      method: 'PATCH',
+      headers: authHeaders(token),
+      body: JSON.stringify({ quota, reason }),
+    },
+  );
+}
+
+export function registerDelivery(
+  token: string,
+  eventId: string,
+  payload: {
+    method: 'qr' | 'manual';
+    qrToken?: string;
+    learnerId?: string;
+    clientUuid: string;
+    reason?: string;
+    override?: boolean;
+  },
+): Promise<DeliveryResult> {
+  return request<DeliveryResult>(`/events/${eventId}/deliveries`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+}
+
+export function searchParticipant(
+  token: string,
+  eventId: string,
+  document: string,
+): Promise<ParticipantSearch> {
+  return request<ParticipantSearch>(
+    `/events/${eventId}/participants/search?document=${encodeURIComponent(document)}`,
+    { headers: authHeaders(token) },
+  );
+}
+
+export function cafeteriaSummary(
+  token: string,
+  eventId: string,
+): Promise<CafeteriaSummary> {
+  return request<CafeteriaSummary>(`/events/${eventId}/cafeteria`, {
+    headers: authHeaders(token),
+  });
+}
+
+export function markCafeteriaPrepared(
+  token: string,
+  eventId: string,
+): Promise<{ cafeteriaPreparedAt: string }> {
+  return request(`/events/${eventId}/cafeteria/prepared`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({}),
+  });
+}
+
+export function closeEvent(token: string, id: string): Promise<EventRow> {
+  return request<EventRow>(`/events/${id}/close`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({}),
+  });
+}

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -100,6 +101,24 @@ export class EventsController {
       eventGroupId,
       dto,
       request.user as AuthenticatedUser,
+    );
+  }
+
+  /** Búsqueda por documento para la entrega manual (RF-18). */
+  @Get(':id/participants/search')
+  @Roles(...DELIVERY_ROLES)
+  searchParticipant(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('document') document: string,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    if (!document) {
+      throw new BadRequestException('Indica el documento del aprendiz');
+    }
+    return this.events.searchParticipant(
+      request.user as AuthenticatedUser,
+      id,
+      document,
     );
   }
 

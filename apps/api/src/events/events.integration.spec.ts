@@ -241,6 +241,15 @@ describe('Refrigerios M1 (RF-12 a RF-21)', () => {
       ),
     );
     expect(Object.keys(tokensByLearner)).toHaveLength(3);
+
+    const search = await app.inject({
+      method: 'GET',
+      url: `/api/events/${eventId}/participants/search?document=410000001`,
+      headers: { authorization: `Bearer ${coordToken}` },
+    });
+    expect(search.statusCode).toBe(200);
+    expect(search.json().fullName).toBe('Aprendiz M1 1');
+    expect(search.json().confirmed).toBe(false);
   });
 
   it('confirmación pública por token: acepta, rechaza token inválido y respeta el plazo', async () => {

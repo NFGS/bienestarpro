@@ -355,6 +355,39 @@ export class EventsService {
 
   // ---------- RF-17 / RF-18: entregas ----------
 
+  /** Búsqueda de participante por documento (para la entrega manual). */
+  async searchParticipant(
+    actor: AuthenticatedUser,
+    eventId: string,
+    document: string,
+  ) {
+    const centerId = this.tenant(actor);
+    return this.dbService.withTenant(centerId, async (db) => {
+      const [row] = await db
+        .select({ participant: eventParticipants, learner: learners })
+        .from(eventParticipants)
+        .innerJoin(learners, eq(eventParticipants.learnerId, learners.id))
+        .where(
+          and(
+            eq(eventParticipants.eventId, eventId),
+            eq(learners.document, document),
+          ),
+        )
+        .limit(1);
+      if (!row) {
+        throw new NotFoundException('Aprendiz no encontrado en el evento');
+      }
+      return {
+        participantId: row.participant.id,
+        learnerId: row.learner.id,
+        fullName: row.learner.fullName,
+        document: row.learner.document,
+        status: row.participant.status,
+        confirmed: row.participant.status === 'confirmado',
+      };
+    });
+  }
+
   async registerDelivery(
     eventId: string,
     dto: DeliveryDto,
