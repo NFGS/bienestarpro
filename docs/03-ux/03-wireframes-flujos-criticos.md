@@ -310,7 +310,7 @@ El detector anti-patrones (plugin local de impeccable, ejecutado automáticament
 **Umbrales (RNF-01):** 80 % o más de las tareas clave completadas **sin ayuda**; SUS ≥ 70.
 **Participantes:** 3 a 5 aprendices (flujo A; muestra mínima de usabilidad) y, como los flujos B y C no pueden ejecutarse con rol de aprendiz, 1 auxiliar de Bienestar (flujo B) y 1 persona de la cafetería (flujo C). Si aparecen hallazgos críticos, repetir con 3 participantes más.
 
-**Materiales:** prototipo abierto en un celular (flujos A y B) y en celular y computador (flujo C); guion del moderador; formato de observación (tarea, con/sin ayuda, tiempo, errores, comentarios); cuestionario SUS.
+**Materiales:** prototipo abierto en un celular (flujos A y B) y en celular y computador (flujo C); guion del moderador; formato de observación y hoja resumen (`04-instrumento-validacion.md`); cuestionario SUS.
 
 **Procedimiento por sesión (20 a 30 minutos):**
 1. Consentimiento verbal: la sesión es para mejorar la interfaz; se registran solo observaciones anónimas (Ley 1581 de 2012; datos mínimos, sin identificación).
