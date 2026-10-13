@@ -9,6 +9,7 @@ import { hash } from 'argon2';
 import { asc, eq } from 'drizzle-orm';
 import { AuditService } from '../audit/audit.service';
 import type { AuthenticatedUser } from '../auth/auth.service';
+import { isUniqueViolation } from '../db/db-errors';
 import { DbService } from '../db/db.module';
 import { users } from '../db/schema';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -36,18 +37,6 @@ function toPublic(row: typeof users.$inferSelect): PublicUser {
     status: row.status,
     createdAt: row.createdAt,
   };
-}
-
-/** Detecta la violación de unicidad de PostgreSQL (código 23505), incluso envuelta por drizzle. */
-function isUniqueViolation(error: unknown): boolean {
-  let current = error as { code?: string; cause?: unknown } | undefined;
-  for (let depth = 0; current && depth < 5; depth++) {
-    if (current.code === '23505') {
-      return true;
-    }
-    current = current.cause as { code?: string; cause?: unknown } | undefined;
-  }
-  return false;
 }
 
 /** CU-02 / RF-02: gestión de usuarios y roles (ámbito por centro). */

@@ -1,10 +1,12 @@
 import {
+  date,
   index,
   integer,
   jsonb,
   pgTable,
   text,
   timestamp,
+  unique,
   uuid,
 } from 'drizzle-orm/pg-core';
 
@@ -73,3 +75,115 @@ export const auditLog = pgTable(
     index('audit_log_actor_idx').on(table.actorId),
   ],
 );
+
+/**
+ * M9 — Directorio maestro (rebanada 2). Tablas multi-tenant:
+ * protegidas con Row-Level Security (ver migración SQL de políticas, ADR-0003).
+ * Toda consulta pasa por `DbService.withTenant` (contexto `app.centro_id`).
+ */
+
+export const programs = pgTable('programs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  centerId: uuid('center_id')
+    .notNull()
+    .references(() => centers.id),
+  name: text('name').notNull(),
+  status: text('status').notNull().default('activo'),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+/** Fichas de formación (con jornada mañana/tarde/noche). */
+export const groups = pgTable(
+  'groups',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    centerId: uuid('center_id')
+      .notNull()
+      .references(() => centers.id),
+    programId: uuid('program_id')
+      .notNull()
+      .references(() => programs.id),
+    code: text('code').notNull(),
+    journey: text('journey').notNull(),
+    startDate: date('start_date', { mode: 'string' }),
+    endDate: date('end_date', { mode: 'string' }),
+    status: text('status').notNull().default('activa'),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    unique('groups_center_code_unique').on(table.centerId, table.code),
+    index('groups_center_journey_idx').on(table.centerId, table.journey),
+  ],
+);
+
+/** Aprendices (historial conservado: el retiro cambia `status`). */
+export const learners = pgTable(
+  'learners',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    centerId: uuid('center_id')
+      .notNull()
+      .references(() => centers.id),
+    groupId: uuid('group_id')
+      .notNull()
+      .references(() => groups.id),
+    document: text('document').notNull(),
+    fullName: text('full_name').notNull(),
+    email: text('email'),
+    status: text('status').notNull().default('activo'),
+    retiredAt: timestamp('retired_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    unique('learners_center_document_unique').on(
+      table.centerId,
+      table.document,
+    ),
+  ],
+);
+
+/** Asignación de instructores a fichas (director o instructor). */
+export const groupInstructors = pgTable(
+  'group_instructors',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    centerId: uuid('center_id')
+      .notNull()
+      .references(() => centers.id),
+    groupId: uuid('group_id')
+      .notNull()
+      .references(() => groups.id),
+    instructorId: uuid('instructor_id')
+      .notNull()
+      .references(() => users.id),
+    roleInGroup: text('role_in_group').notNull().default('instructor'),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    unique('group_instructors_unique').on(table.groupId, table.instructorId),
+  ],
+);
+
+/** Consentimientos de tratamiento de datos (Ley 1581): versionados y revocables. */
+export const consents = pgTable('consents', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  centerId: uuid('center_id')
+    .notNull()
+    .references(() => centers.id),
+  learnerId: uuid('learner_id')
+    .notNull()
+    .references(() => learners.id),
+  policyVersion: text('policy_version').notNull(),
+  grantedAt: timestamp('granted_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  revokedAt: timestamp('revoked_at', { withTimezone: true }),
+});

@@ -24,7 +24,8 @@ jobs:
           --health-timeout 3s
           --health-retries 10
     env:
-      DATABASE_URL: postgres://bienestarpro:bienestarpro_dev@127.0.0.1:5432/bienestarpro
+      DATABASE_URL: postgres://bienestarpro_app:bienestarpro_app_dev@127.0.0.1:5432/bienestarpro
+      MIGRATIONS_DATABASE_URL: postgres://bienestarpro:bienestarpro_dev@127.0.0.1:5432/bienestarpro
       JWT_SECRET: ci-secret-no-productivo
       TOTP_ENCRYPTION_KEY: abababababababababababababababababababababababababababababababab
     steps:

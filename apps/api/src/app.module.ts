@@ -3,6 +3,7 @@ import { AuditModule } from './audit/audit.module';
 import { AuthModule } from './auth/auth.module';
 import { CentersModule } from './centers/centers.module';
 import { DbModule } from './db/db.module';
+import { DirectoryModule } from './directory/directory.module';
 import { HealthModule } from './health/health.module';
 import { UsersModule } from './users/users.module';
 
@@ -14,6 +15,7 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     UsersModule,
     CentersModule,
+    DirectoryModule,
   ],
 })
 export class AppModule {}

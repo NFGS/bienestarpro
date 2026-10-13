@@ -4,6 +4,7 @@ import {
   Module,
   OnApplicationShutdown,
 } from '@nestjs/common';
+import { sql } from 'drizzle-orm';
 import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres, { type Sql } from 'postgres';
 import * as schema from './schema';
@@ -30,6 +31,24 @@ export class DbService implements OnApplicationShutdown {
 
   async onApplicationShutdown(): Promise<void> {
     await this.client.end();
+  }
+
+  /**
+   * Ejecuta una operación en una transacción con el contexto de centro activo
+   * (`app.centro_id`), requisito de las políticas RLS de las tablas
+   * multi-tenant (ADR-0003 / ADR-0016 D2). Sin contexto, las políticas no
+   * dejan ver ni escribir filas.
+   */
+  async withTenant<T>(
+    centerId: string,
+    fn: (db: Database) => Promise<T>,
+  ): Promise<T> {
+    return this.db.transaction(async (tx) => {
+      await tx.execute(
+        sql`select set_config('app.centro_id', ${centerId}, true)`,
+      );
+      return fn(tx as unknown as Database);
+    });
   }
 }
 

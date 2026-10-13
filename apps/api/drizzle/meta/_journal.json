@@ -22,6 +22,34 @@
       "when": 1791866621031,
       "tag": "0002_mute_living_mummy",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791868045176,
+      "tag": "0003_spotty_sentinel",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791868046440,
+      "tag": "0004_rls_m9_directory",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791868366176,
+      "tag": "0005_app_role_no_superuser",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791869062286,
+      "tag": "0006_rls_nullif_hardening",
+      "breakpoints": true
     }
   ]
 }

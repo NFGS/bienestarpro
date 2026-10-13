@@ -30,6 +30,8 @@ Convertir los borradores de requisitos, arquitectura y UX en software verificabl
 
 **Estado (2026-10-13):** **rebanada 1 (M4 Administración) completa** — RF-01 login (Argon2id + bloqueo), RF-02 usuarios/roles con UI, RF-03 centros (API; UI de superadmin cuando exista caso multi-centro), RF-04 auditoría consultable con UI, RF-05 TOTP obligatorio para administración/portería (enrolamiento asistido con QR, verificación en login y guard de cumplimiento). Pruebas: API 13/13, web 2/2; evidencia gráfica del flujo TOTP y de la administración en `docs/04-construccion/evidencias/`. Nota: el usuario demo quedó con TOTP activado para la evidencia; para restablecerlo: `UPDATE users SET totp_secret=NULL, totp_enabled_at=NULL WHERE email='coordinacion.demo@bienestarpro.local';`.
 
+**Estado (2026-10-14):** rebanada 2 (M9 Fichas por jornada) — **backend completo con RLS multi-tenant real**: programas, fichas (jornadas mañana/tarde/noche), aprendices con retiro auditado, instructores por ficha y consentimientos versionados/revocables (RF-06 a RF-11). Migraciones: 0003 (tablas), 0004+0006 (políticas RLS endurecidas con NULLIF), 0005 (rol de aplicación no-superuser). Pruebas: 18/18 con aislamiento verificado entre dos centros y fail-closed sin contexto. Hallazgos documentados en las migraciones: (1) el bootstrap superuser de Docker no puede degradarse — la API usa un rol dedicado `bienestarpro_app`; (2) tras `set_config` local el GUC queda en cadena vacía — las políticas usan `NULLIF`. Pendiente: UI del directorio (lista/detalle de fichas) y evidencia gráfica.
+
 ## 3. Rebanada 0 — Infraestructura base (alcance inmediato)
 
 - [x] `docs/04-construccion/` y este plan.
