@@ -41,15 +41,14 @@ describe('Segundo factor TOTP (RF-05)', () => {
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
 
-    const existing = await db.select().from(centers).limit(1);
-    centerId =
-      existing[0]?.id ??
-      (
-        await db
-          .insert(centers)
-          .values({ name: 'Centro TOTP prueba' })
-          .returning()
-      )[0].id;
+    // Centro propio de esta corrida: reutilizar "el primer centro" de la base
+    // ensuciaba centros de otros specs en CI (FK al limpiar).
+    centerId = (
+      await db
+        .insert(centers)
+        .values({ name: 'Centro TOTP prueba' })
+        .returning()
+    )[0].id;
 
     await db.delete(users).where(inArray(users.email, Object.values(EMAILS)));
     const passwordHash = await hash(PASSWORD);
@@ -75,6 +74,7 @@ describe('Segundo factor TOTP (RF-05)', () => {
 
   afterAll(async () => {
     await db.delete(users).where(inArray(users.email, Object.values(EMAILS)));
+    await db.delete(centers).where(inArray(centers.id, [centerId]));
     await app.close();
     await sql.end();
   });
