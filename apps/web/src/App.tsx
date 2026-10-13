@@ -1,14 +1,57 @@
+import { useEffect, useState } from 'react';
+import {
+  clearSession,
+  loadSession,
+  saveSession,
+} from './auth/session';
+import type { StoredSession } from './auth/session';
+import { me } from './lib/api';
+import HomePage from './pages/HomePage';
+import LoginPage from './pages/LoginPage';
+
 function App() {
+  const [session, setSession] = useState<StoredSession | null>(() =>
+    loadSession(),
+  );
+
+  // Valida el token guardado contra la API (expiración o revocación).
+  useEffect(() => {
+    const stored = loadSession();
+    if (!stored) {
+      return;
+    }
+    me(stored.accessToken)
+      .then((user) => {
+        const refreshed = { accessToken: stored.accessToken, user };
+        saveSession(refreshed);
+        setSession(refreshed);
+      })
+      .catch(() => {
+        clearSession();
+        setSession(null);
+      });
+  }, []);
+
+  if (!session) {
+    return (
+      <LoginPage
+        onAuthenticated={(result) => {
+          saveSession(result);
+          setSession(result);
+        }}
+      />
+    );
+  }
+
   return (
-    <main className="shell">
-      <h1>BienestarPro</h1>
-      <p>Shell de la PWA — Fase 4, rebanada 0.</p>
-      <p className="note">
-        El design system (docs/03-ux/02-design-system.md) y los flujos del
-        prototipo entran con la rebanada 1 (M4 Administración).
-      </p>
-    </main>
-  )
+    <HomePage
+      user={session.user}
+      onLogout={() => {
+        clearSession();
+        setSession(null);
+      }}
+    />
+  );
 }
 
-export default App
+export default App;

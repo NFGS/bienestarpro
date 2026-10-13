@@ -28,6 +28,8 @@ Convertir los borradores de requisitos, arquitectura y UX en software verificabl
 | 9 | M5 Informes | 3–8 | Planilla, informe y tablero |
 | — | Piloto (1–2 fichas) | 9 | Operación real supervisada |
 
+**Estado (2026-10-13):** rebanada 1 en curso — **inicio de sesión completo de punta a punta**: esquema `users`/`centers` con migración (ADR-0016, Drizzle), API con Argon2id + JWT + bloqueo por intentos (pruebas 4/4), UI sobre el design system con pruebas 2/2, y evidencia gráfica en `docs/04-construccion/evidencias/`. Pendiente de la rebanada: CRUD de usuarios/roles (RF-02), centros (RF-03), auditoría consultable (RF-04) y TOTP (RF-05).
+
 ## 3. Rebanada 0 — Infraestructura base (alcance inmediato)
 
 - [x] `docs/04-construccion/` y este plan.
