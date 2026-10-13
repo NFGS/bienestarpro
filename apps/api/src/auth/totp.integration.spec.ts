@@ -6,7 +6,7 @@ import {
 } from '@nestjs/platform-fastify';
 import { Test } from '@nestjs/testing';
 import { hash } from 'argon2';
-import { eq, inArray } from 'drizzle-orm';
+import { inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';

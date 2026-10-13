@@ -28,7 +28,7 @@ Convertir los borradores de requisitos, arquitectura y UX en software verificabl
 | 9 | M5 Informes | 3–8 | Planilla, informe y tablero |
 | — | Piloto (1–2 fichas) | 9 | Operación real supervisada |
 
-**Estado (2026-10-13):** rebanada 1 en curso — inicio de sesión de punta a punta (esquema + migraciones, Argon2id + JWT + bloqueo, UI sobre el design system, evidencia gráfica) y **backend de administración completo**: usuarios/roles (RF-02), centros (RF-03) y auditoría consultable (RF-04) con permisos por rol y bitácora de accesos y cambios — pruebas de API 9/9. Pendiente de la rebanada: TOTP (RF-05) y la UI de administración.
+**Estado (2026-10-13):** **rebanada 1 (M4 Administración) completa** — RF-01 login (Argon2id + bloqueo), RF-02 usuarios/roles con UI, RF-03 centros (API; UI de superadmin cuando exista caso multi-centro), RF-04 auditoría consultable con UI, RF-05 TOTP obligatorio para administración/portería (enrolamiento asistido con QR, verificación en login y guard de cumplimiento). Pruebas: API 13/13, web 2/2; evidencia gráfica del flujo TOTP y de la administración en `docs/04-construccion/evidencias/`. Nota: el usuario demo quedó con TOTP activado para la evidencia; para restablecerlo: `UPDATE users SET totp_secret=NULL, totp_enabled_at=NULL WHERE email='coordinacion.demo@bienestarpro.local';`.
 
 ## 3. Rebanada 0 — Infraestructura base (alcance inmediato)
 

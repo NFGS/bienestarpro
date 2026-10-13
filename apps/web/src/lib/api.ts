@@ -12,6 +12,39 @@ export interface SessionUser {
 export interface LoginResponse {
   accessToken: string;
   user: SessionUser;
+  /** true cuando el rol exige TOTP y aún no está configurado (RF-05). */
+  totpEnrollmentRequired: boolean;
+}
+
+export interface UserRow {
+  id: string;
+  centerId: string | null;
+  document: string;
+  email: string;
+  name: string;
+  role: string;
+  status: string;
+  createdAt: string;
+}
+
+export interface AuditRow {
+  id: string;
+  action: string;
+  actorEmail: string | null;
+  entity: string | null;
+  entityId: string | null;
+  createdAt: string;
+}
+
+/** Error del API con el código de negocio (p. ej. totp_required). */
+export class ApiError extends Error {
+  readonly code?: string;
+
+  constructor(message: string, code?: string) {
+    super(message);
+    this.name = 'ApiError';
+    this.code = code;
+  }
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -25,36 +58,110 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!res.ok) {
     let message = 'No se pudo completar la solicitud.';
+    let code: string | undefined;
     try {
-      const body = (await res.json()) as { message?: string | string[] };
+      const body = (await res.json()) as {
+        message?: string | string[];
+        code?: string;
+      };
       if (Array.isArray(body.message) && body.message.length > 0) {
         message = body.message[0] as string;
       } else if (typeof body.message === 'string') {
         message = body.message;
       }
+      code = body.code;
     } catch {
       // Respuesta sin cuerpo JSON: se conserva el mensaje genérico.
     }
-    throw new Error(message);
+    throw new ApiError(message, code);
   }
 
   return (await res.json()) as T;
 }
 
-/** CU-01 / RF-01: inicio de sesión con documento o correo. */
+function authHeaders(token: string): Record<string, string> {
+  return { Authorization: `Bearer ${token}` };
+}
+
+/** CU-01 / RF-01 / RF-05: inicio de sesión con soporte de segundo factor. */
 export function login(
   identifier: string,
   password: string,
+  totpCode?: string,
 ): Promise<LoginResponse> {
   return request<LoginResponse>('/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ identifier, password }),
+    body: JSON.stringify({
+      identifier,
+      password,
+      ...(totpCode ? { totpCode } : {}),
+    }),
   });
 }
 
 /** Sesión actual (valida el token guardado). */
 export function me(accessToken: string): Promise<SessionUser> {
   return request<SessionUser>('/auth/me', {
-    headers: { Authorization: `Bearer ${accessToken}` },
+    headers: authHeaders(accessToken),
   });
+}
+
+/** CU-05 / RF-05: inicia el enrolamiento del segundo factor. */
+export function enrollTotp(
+  token: string,
+): Promise<{ otpauthUrl: string; secret: string }> {
+  return request('/auth/totp/enroll', {
+    method: 'POST',
+    headers: authHeaders(token),
+  });
+}
+
+/** CU-05 / RF-05: activa el segundo factor con un código real. */
+export function activateTotp(token: string, code: string): Promise<void> {
+  return request('/auth/totp/activate', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ code }),
+  });
+}
+
+/** CU-02 / RF-02: usuarios del centro (según rol). */
+export function listUsers(token: string): Promise<UserRow[]> {
+  return request<UserRow[]>('/users', { headers: authHeaders(token) });
+}
+
+export function createUser(
+  token: string,
+  payload: {
+    name: string;
+    document: string;
+    email: string;
+    password: string;
+    role: string;
+  },
+): Promise<UserRow> {
+  return request<UserRow>('/users', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updateUser(
+  token: string,
+  id: string,
+  payload: { role?: string; status?: string },
+): Promise<UserRow> {
+  return request<UserRow>(`/users/${id}`, {
+    method: 'PATCH',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+}
+
+/** CU-04 / RF-04: últimas entradas de auditoría. */
+export function listAudit(
+  token: string,
+): Promise<{ items: AuditRow[]; total: number }> {
+  return request('/audit?limit=25', { headers: authHeaders(token) });
 }
