@@ -6,7 +6,7 @@ import {
 } from '@nestjs/platform-fastify';
 import { Test } from '@nestjs/testing';
 import { hash } from 'argon2';
-import { eq, inArray } from 'drizzle-orm';
+import { inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -111,11 +111,10 @@ describe('Directorio maestro M9 (RF-06 a RF-11 + RLS)', () => {
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
 
-    const existing = await db.select().from(centers).limit(1);
-    centerA =
-      existing[0]?.id ??
-      (await db.insert(centers).values({ name: 'Centro M9 A' }).returning())[0]
-        .id;
+    // Centros propios del spec: no se tocan datos de otros centros.
+    centerA = (
+      await db.insert(centers).values({ name: 'Centro M9 A' }).returning()
+    )[0].id;
     centerB = (
       await db.insert(centers).values({ name: 'Centro M9 B' }).returning()
     )[0].id;
@@ -162,7 +161,9 @@ describe('Directorio maestro M9 (RF-06 a RF-11 + RLS)', () => {
     await cleanupTenant(centerA);
     await cleanupTenant(centerB);
     await db.delete(users).where(inArray(users.email, Object.values(EMAILS)));
-    await db.delete(centers).where(eq(centers.name, 'Centro M9 B'));
+    await db
+      .delete(centers)
+      .where(inArray(centers.name, ['Centro M9 A', 'Centro M9 B']));
     await app.close();
     await sql.end();
   });

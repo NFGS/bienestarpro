@@ -5,7 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { and, asc, eq, isNull } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNull } from 'drizzle-orm';
 import { AuditService } from '../audit/audit.service';
 import type { AuthenticatedUser } from '../auth/auth.service';
 import { isUniqueViolation } from '../db/db-errors';
@@ -209,6 +209,14 @@ export class DirectoryService {
         .from(groupInstructors)
         .innerJoin(users, eq(groupInstructors.instructorId, users.id))
         .where(eq(groupInstructors.groupId, id));
+      const learnerIds = groupLearners.map((learner) => learner.id);
+      const consentRows =
+        learnerIds.length > 0
+          ? await db
+              .select()
+              .from(consents)
+              .where(inArray(consents.learnerId, learnerIds))
+          : [];
       return {
         ...group,
         programName: program?.name ?? null,
@@ -220,6 +228,7 @@ export class DirectoryService {
           name: row.name,
           email: row.email,
         })),
+        consents: consentRows,
       };
     });
   }

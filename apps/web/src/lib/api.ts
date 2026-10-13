@@ -165,3 +165,179 @@ export function listAudit(
 ): Promise<{ items: AuditRow[]; total: number }> {
   return request('/audit?limit=25', { headers: authHeaders(token) });
 }
+
+// ---------- Directorio maestro (M9) ----------
+
+export interface ProgramRow {
+  id: string;
+  name: string;
+  status: string;
+}
+
+export interface GroupRow {
+  id: string;
+  programId: string;
+  code: string;
+  journey: string;
+  status: string;
+  startDate: string | null;
+  endDate: string | null;
+  programName: string;
+}
+
+export interface LearnerRow {
+  id: string;
+  groupId: string;
+  document: string;
+  fullName: string;
+  email: string | null;
+  status: string;
+  retiredAt: string | null;
+}
+
+export interface ConsentRow {
+  id: string;
+  learnerId: string;
+  policyVersion: string;
+  grantedAt: string;
+  revokedAt: string | null;
+}
+
+export interface InstructorAssignment {
+  id: string;
+  instructorId: string;
+  roleInGroup: string;
+  name: string;
+  email: string;
+}
+
+export interface GroupDetail extends GroupRow {
+  learners: LearnerRow[];
+  instructors: InstructorAssignment[];
+  consents: ConsentRow[];
+}
+
+export function listPrograms(token: string): Promise<ProgramRow[]> {
+  return request<ProgramRow[]>('/programs', { headers: authHeaders(token) });
+}
+
+export function createProgram(token: string, name: string): Promise<ProgramRow> {
+  return request<ProgramRow>('/programs', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ name }),
+  });
+}
+
+export function listGroups(
+  token: string,
+  params?: { journey?: string; programId?: string },
+): Promise<GroupRow[]> {
+  const query = [
+    params?.journey ? `journey=${encodeURIComponent(params.journey)}` : '',
+    params?.programId ? `programId=${encodeURIComponent(params.programId)}` : '',
+  ]
+    .filter(Boolean)
+    .join('&');
+  return request<GroupRow[]>(`/groups${query ? `?${query}` : ''}`, {
+    headers: authHeaders(token),
+  });
+}
+
+export function createGroup(
+  token: string,
+  payload: {
+    programId: string;
+    code: string;
+    journey: string;
+    startDate?: string;
+  },
+): Promise<GroupRow> {
+  return request<GroupRow>('/groups', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getGroupDetail(
+  token: string,
+  id: string,
+): Promise<GroupDetail> {
+  return request<GroupDetail>(`/groups/${id}`, {
+    headers: authHeaders(token),
+  });
+}
+
+export function createLearner(
+  token: string,
+  payload: {
+    groupId: string;
+    document: string;
+    fullName: string;
+    email?: string;
+  },
+): Promise<LearnerRow> {
+  return request<LearnerRow>('/learners', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updateLearner(
+  token: string,
+  id: string,
+  payload: { status?: string; fullName?: string; email?: string },
+): Promise<LearnerRow> {
+  return request<LearnerRow>(`/learners/${id}`, {
+    method: 'PATCH',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+}
+
+export function assignInstructor(
+  token: string,
+  groupId: string,
+  payload: { instructorId: string; roleInGroup: string },
+): Promise<InstructorAssignment> {
+  return request<InstructorAssignment>(`/groups/${groupId}/instructors`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+}
+
+export function removeInstructor(
+  token: string,
+  groupId: string,
+  assignmentId: string,
+): Promise<{ ok: boolean }> {
+  return request(`/groups/${groupId}/instructors/${assignmentId}`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
+  });
+}
+
+export function grantConsent(
+  token: string,
+  learnerId: string,
+  policyVersion: string,
+): Promise<ConsentRow> {
+  return request<ConsentRow>(`/learners/${learnerId}/consents`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ policyVersion }),
+  });
+}
+
+export function revokeConsent(
+  token: string,
+  consentId: string,
+): Promise<ConsentRow> {
+  return request<ConsentRow>(`/consents/${consentId}/revoke`, {
+    method: 'PATCH',
+    headers: authHeaders(token),
+  });
+}

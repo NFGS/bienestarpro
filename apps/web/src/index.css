@@ -333,6 +333,17 @@ h2 {
   color: var(--bp-error);
 }
 
+.chip--warn {
+  background: var(--bp-warning-tint);
+  color: var(--bp-warning);
+}
+
+.admin__chips {
+  display: flex;
+  gap: var(--bp-space-1);
+  flex-wrap: wrap;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
