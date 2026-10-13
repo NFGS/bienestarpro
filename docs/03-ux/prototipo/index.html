@@ -1,0 +1,1687 @@
+<!DOCTYPE html>
+<!-- BienestarPro — Prototipo de flujos críticos (Fase 3, UX).
+     Tokens: docs/03-ux/02-design-system.md v0.1. Casos de uso: CU-12, CU-14, CU-15.
+     Datos sintéticos de ejemplo. Archivo autocontenido: sin CDN, sin fuentes externas. -->
+<html lang="es-CO">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Prototipo estático de baja-media fidelidad de los tres flujos críticos de BienestarPro: confirmar asistencia (Aprendiz), registrar entrega (Auxiliar) y consolidado para cafetería.">
+<meta name="color-scheme" content="light">
+<title>BienestarPro — Prototipo de flujos críticos</title>
+<style>
+/* ============ Tokens (docs/03-ux/02-design-system.md v0.1, bloque CSS 1:1) ============ */
+:root {
+  /* Color */
+  --color-primary: #2B7A00;
+  --color-primary-hover: #236300;
+  --color-primary-pressed: #1C4E00;
+  --color-on-primary: #FFFFFF;
+  --color-brand-green: #39A900;   /* solo gráficos */
+  --color-accent-orange: #FF7B00;  /* solo decorativo */
+  --color-surface: #FFFFFF;
+  --color-surface-alt: #F3F6F0;
+  --color-text-primary: #202A19;
+  --color-text-secondary: #55654B;
+  --color-text-disabled: #8A9683;
+  --color-border-input: #76856E;
+  --color-border-subtle: #D5DFCE;
+  --color-success: #157347;
+  --color-success-tint: #E5F3E8;
+  --color-warning: #8F5B00;
+  --color-warning-tint: #FDF3DC;
+  --color-error: #B3261E;
+  --color-error-tint: #FBECEA;
+  --color-info: #0F5CA8;
+  --color-info-tint: #E8F1FA;
+  --color-neutral-tint: #EDF1EB;
+  --color-focus-ring: #1C4E00;
+  --color-qr-ink: #000000;
+
+  /* Tipografía */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --text-display: 700 1.875rem/1.2 var(--font-sans);
+  --text-headline: 700 1.5rem/1.25 var(--font-sans);
+  --text-title: 600 1.25rem/1.3 var(--font-sans);
+  --text-body: 400 1.125rem/1.5 var(--font-sans);
+  --text-body-strong: 600 1.125rem/1.5 var(--font-sans);
+  --text-label: 600 1rem/1.45 var(--font-sans);
+  --text-small: 400 1rem/1.45 var(--font-sans);
+
+  /* Espaciado */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* Radios */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 999px;
+
+  /* Sombra y foco */
+  --shadow-1: 0 2px 6px rgba(32, 42, 25, 0.10);
+  --shadow-2: 0 8px 24px rgba(32, 42, 25, 0.16);
+  --focus-ring: 0 0 0 2px #FFFFFF, 0 0 0 4px #1C4E00;
+
+  /* Toque y movimiento */
+  --touch-min: 44px;
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+
+  color-scheme: light;
+}
+
+/* Nota de implementación: cada rol tipográfico se aplica con su token
+   --text-* del design system y se repite en font-size longhand con el mismo
+   valor, para que la jerarquía sea verificable de forma estática. Si un token
+   cambia en el design system, cambiar también el literal aquí (same commit). */
+
+/* ============ Base ============ */
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  font: var(--text-body);
+  font-size: 1.125rem;
+  color: var(--color-text-primary);
+  background: var(--color-surface-alt);
+  min-height: 100vh;
+}
+h1, h2, h3, p, dl, dt, dd, ul, ol, figure { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+a { color: var(--color-primary); }
+svg { display: block; }
+::selection { background: var(--color-success-tint); color: var(--color-text-primary); }
+
+/* Iconos SVG en línea: trazo 2 px, extremos redondeados (design system, Componentes) */
+.ic {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+/* ============ Sistema de pantallas (navegación por fragmentos, sin scripts) ============ */
+.screen { display: none; }
+.screen:target { display: block; }
+#inicio { display: block; }
+body:has(.screen:target) #inicio:not(:target) { display: none; }
+
+/* ============ Utilidades ============ */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%);
+  white-space: nowrap; border: 0;
+}
+.section-title { font: var(--text-title); font-size: 1.25rem; }
+.actions { display: grid; gap: var(--space-3); }
+
+/* ============ Foco visible (doble anillo, design system: Elevación) ============ */
+a:focus-visible, button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* ============ Botones (design system: Botones) ============ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 48px;
+  padding: 12px 24px;
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  font: var(--text-body-strong);
+  font-size: 1.125rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-standard),
+              color var(--duration-fast) var(--ease-standard),
+              border-color var(--duration-fast) var(--ease-standard);
+}
+.btn .ic { width: 24px; height: 24px; flex: none; }
+.btn--primary { background: var(--color-primary); color: var(--color-on-primary); }
+.btn--primary:hover { background: var(--color-primary-hover); }
+.btn--primary:active { background: var(--color-primary-pressed); }
+.btn--secondary { background: var(--color-surface); color: var(--color-primary); border-color: var(--color-primary); }
+.btn--secondary:hover { background: var(--color-surface-alt); }
+.btn--tertiary { background: var(--color-surface); color: var(--color-primary); border-color: transparent; padding: 12px 16px; }
+.btn--tertiary:hover { background: var(--color-surface-alt); }
+.btn--danger { background: var(--color-surface); color: var(--color-error); border-color: var(--color-error); }
+.btn--danger:hover { background: var(--color-error-tint); }
+.btn--block { display: flex; width: 100%; }
+
+/* ============ Chips de estado (design system: Chips; siempre icono y texto) ============ */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font: var(--text-label);
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.chip .ic { width: 16px; height: 16px; flex: none; }
+.chip--success { background: var(--color-success-tint); color: var(--color-success); }
+.chip--warning { background: var(--color-warning-tint); color: var(--color-warning); }
+.chip--error { background: var(--color-error-tint); color: var(--color-error); }
+.chip--info { background: var(--color-info-tint); color: var(--color-info); }
+.chip--neutral { background: var(--color-neutral-tint); color: var(--color-text-secondary); }
+
+/* ============ Banners de estado (design system: Banners) ============ */
+.banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  min-height: 48px;
+  font: var(--text-body);
+  font-size: 1.125rem;
+}
+.banner > .ic { width: 24px; height: 24px; flex: none; margin-top: 3px; }
+.banner__body { display: grid; gap: var(--space-1); }
+.banner__lead { font: var(--text-body-strong); font-size: 1.125rem; }
+.banner__text { color: var(--color-text-primary); }
+.banner__body .btn { margin-top: var(--space-2); justify-self: start; }
+.banner--success { background: var(--color-success-tint); }
+.banner--success > .ic, .banner--success .banner__lead { color: var(--color-success); }
+.banner--warning { background: var(--color-warning-tint); }
+.banner--warning > .ic, .banner--warning .banner__lead { color: var(--color-warning); }
+.banner--error { background: var(--color-error-tint); }
+.banner--error > .ic, .banner--error .banner__lead { color: var(--color-error); }
+.banner--info { background: var(--color-info-tint); }
+.banner--info > .ic, .banner--info .banner__lead { color: var(--color-info); }
+.banner--neutral { background: var(--color-neutral-tint); }
+.banner--neutral > .ic, .banner--neutral .banner__lead { color: var(--color-text-primary); }
+
+/* ============ Tarjetas ============ */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+/* Tarjeta de evento (design system: Tarjeta de evento con insignia de estado) */
+.event-card { display: grid; gap: var(--space-3); }
+.event-card__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-2); }
+.event-card__title { font: var(--text-title); font-size: 1.25rem; }
+.event-card__meta { display: grid; gap: var(--space-2); }
+.event-card__status { font: var(--text-body); font-size: 1.125rem; }
+.meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font: var(--text-small);
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+}
+.meta .ic { width: 20px; height: 20px; flex: none; }
+
+/* Encabezado de evento en pantallas de detalle */
+.event-head { display: grid; gap: var(--space-2); }
+.event-head__title { font: var(--text-title); font-size: 1.25rem; }
+
+/* Lista de datos (detalle del evento) */
+.details { display: grid; }
+.details__row { display: grid; gap: var(--space-1); padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border-subtle); }
+.details__row:first-child { padding-top: 0; }
+.details__row:last-child { border-bottom: none; padding-bottom: 0; }
+.details dt {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font: var(--text-small);
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+}
+.details dt .ic { width: 20px; height: 20px; flex: none; }
+.details dd { font: var(--text-body); font-size: 1.125rem; }
+
+/* ============ Contadores y progreso (design system: Lista de asistencia del auxiliar) ============ */
+.stats-card { display: grid; gap: var(--space-4); }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-2); }
+.stat { display: grid; justify-items: center; gap: var(--space-1); text-align: center; }
+.stat dd { order: 1; font: 600 1.25rem/1.3 var(--font-sans); font-variant-numeric: tabular-nums; }
+.stat dt { order: 2; font: var(--text-small); font-size: 1rem; color: var(--color-text-secondary); }
+.progress { display: grid; gap: var(--space-2); }
+.progress__text { font: var(--text-body-strong); font-size: 1.125rem; font-variant-numeric: tabular-nums; }
+.progress__track {
+  height: 8px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+.progress__bar { height: 100%; background: var(--color-brand-green); border-radius: var(--radius-full); }
+
+/* Contador local sin conexión */
+.pending-strip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  font: var(--text-body-strong);
+  font-size: 1.125rem;
+}
+.pending-strip .ic { width: 24px; height: 24px; flex: none; color: var(--color-info); }
+
+/* ============ Filas de lista (design system: Lista de asistencia, filas de 56 px) ============ */
+.list {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  min-height: 56px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.list-row:last-child { border-bottom: none; }
+.list-row__id { display: grid; gap: var(--space-1); }
+.list-row__name { font: var(--text-body-strong); font-size: 1.125rem; }
+.list-row__meta { font: var(--text-small); font-size: 1rem; color: var(--color-text-secondary); }
+.list-row__chip { flex: none; }
+
+/* ============ Campos de formulario (design system: Campos; etiqueta siempre visible) ============ */
+.field { display: grid; gap: var(--space-2); }
+.field__label { font: var(--text-label); font-size: 1rem; letter-spacing: 0.01em; }
+.field__input {
+  width: 100%;
+  height: 52px;
+  padding: 12px 16px;
+  border: 1.5px solid var(--color-border-input);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font: var(--text-body);
+  font-size: 1.125rem;
+  font-family: var(--font-sans);
+}
+.field__input::placeholder { color: var(--color-text-secondary); opacity: 1; }
+.field__help { font: var(--text-small); font-size: 1rem; color: var(--color-text-secondary); }
+.field--error .field__input { border: 2px solid var(--color-error); }
+.field__error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1);
+  font: var(--text-small);
+  font-size: 1rem;
+  color: var(--color-error);
+}
+.field__error .ic { width: 16px; height: 16px; flex: none; margin-top: 3px; }
+.search { display: flex; gap: var(--space-2); }
+.search .field__input { flex: 1; min-width: 0; }
+.search .btn { min-height: 52px; }
+
+/* ============ Hoja de confirmación (design system: Sombra 2, radio 16) ============ */
+/* Hoja de confirmación (design system: Sombra 2, radio 16). Sin borde:
+   la sombra es la señal de flotación; el borde es para superficies en reposo. */
+.sheet {
+  display: grid;
+  gap: var(--space-4);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-2);
+  padding: var(--space-5);
+}
+.sheet__title { font: var(--text-title); font-size: 1.25rem; }
+.sheet__text { font: var(--text-body); font-size: 1.125rem; }
+
+/* Resultado de escaneo correcto */
+.result-card {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  text-align: center;
+  padding: var(--space-5);
+}
+.result-card__icon { width: 48px; height: 48px; color: var(--color-success); }
+.result-card__name { font: var(--text-title); font-size: 1.25rem; }
+.result-card__meta { font: var(--text-small); font-size: 1rem; color: var(--color-text-secondary); }
+
+/* ============ Variantes de estado (bloques de documentación del prototipo) ============ */
+.variant { display: grid; gap: var(--space-3); padding-top: var(--space-5); border-top: 1px solid var(--color-border-subtle); }
+.variant__title { font: var(--text-title); font-size: 1.25rem; color: var(--color-text-secondary); }
+
+/* ============ Barra superior de pantalla (móvil) ============ */
+.appbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 64px;
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.appbar__back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-primary);
+  text-decoration: none;
+}
+.appbar__back .ic { width: 24px; height: 24px; }
+.appbar__title { font: var(--text-headline); font-size: 1.5rem; }
+.appbar--stack { flex-direction: column; align-items: stretch; gap: var(--space-1); padding: var(--space-2) var(--space-4) var(--space-3); }
+.appbar__row { display: flex; align-items: center; gap: var(--space-3); }
+.appbar__subtitle { font: var(--text-small); font-size: 1rem; color: var(--color-text-secondary); }
+
+/* ============ Navegación inferior (móvil, design system: Navegación) ============ */
+.bottomnav {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  background: var(--color-surface);
+  padding-top: 4px;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.bottomnav::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-brand-green) 0 50%, var(--color-accent-orange) 50% 100%);
+}
+.bottomnav__item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-height: 64px;
+  padding: var(--space-2) var(--space-4);
+  font: var(--text-label);
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+.bottomnav__item .ic { width: 24px; height: 24px; }
+.bottomnav__item:active { background: var(--color-surface-alt); }
+.bottomnav__item--active { color: var(--color-primary); }
+.bottomnav__item--active::before {
+  content: "";
+  position: absolute;
+  top: 0; left: var(--space-4); right: var(--space-4);
+  height: 3px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+}
+
+/* ============ Barra superior de escritorio (design system: Navegación, desde 768 px) ============ */
+.topbar { display: none; }
+@media (min-width: 768px) {
+  .bottomnav { display: none; }
+  .appbar--mobile-only { display: none; }
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+  .topbar::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--color-brand-green) 0 50%, var(--color-accent-orange) 50% 100%);
+  }
+  .topbar__inner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 var(--space-5);
+    min-height: 64px;
+  }
+  .topbar__brand { font: var(--text-title); font-size: 1.25rem; color: var(--color-text-primary); }
+  .topbar__links { display: flex; gap: var(--space-4); }
+  .topbar__link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: 64px;
+    padding: 0 var(--space-1);
+    font: var(--text-label);
+    font-size: 1rem;
+    letter-spacing: 0.01em;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+  }
+  .topbar__link:hover { background: var(--color-surface-alt); }
+  .topbar__link--active { color: var(--color-primary); }
+  .topbar__link--active::after {
+    content: "";
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--color-primary);
+  }
+  .topbar__user { margin-left: auto; display: flex; align-items: center; gap: var(--space-2); }
+  .avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    background: var(--color-surface-alt);
+    color: var(--color-text-secondary);
+    font: var(--text-label);
+    font-size: 1rem;
+  }
+  .topbar__username { font: var(--text-small); font-size: 1rem; color: var(--color-text-secondary); }
+  .app-wide .btn--block { display: inline-flex; width: auto; }
+}
+
+/* ============ Tabla de informes (design system: Tablas simples; en móvil se vuelve lista) ============ */
+.table-wrap {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  overflow: hidden;
+}
+.tabla { width: 100%; border-collapse: collapse; }
+.tabla th {
+  font: var(--text-label);
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-alt);
+  color: var(--color-text-primary);
+}
+.tabla td {
+  font: var(--text-small);
+  font-size: 1rem;
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-border-subtle);
+  text-align: left;
+  vertical-align: top;
+}
+.tabla .num { text-align: right; font-variant-numeric: tabular-nums; }
+.tabla tfoot td {
+  font: var(--text-label);
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+  background: var(--color-surface-alt);
+  border-top: 2px solid var(--color-border-subtle);
+}
+.evt-name { display: block; font: var(--text-body-strong); font-size: 1.125rem; }
+.table-note { display: block; margin-top: var(--space-1); font: var(--text-small); font-size: 1rem; color: var(--color-info); }
+
+@media (max-width: 767.98px) {
+  .tabla thead { display: none; }
+  .tabla, .tabla tbody, .tabla tfoot, .tabla tr { display: block; width: 100%; }
+  .tabla tbody tr, .tabla tfoot tr { padding: var(--space-4); border-top: 1px solid var(--color-border-subtle); }
+  .tabla tbody tr:first-child { border-top: none; }
+  .tabla td {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-1) 0;
+    border: none;
+  }
+  .tabla td::before {
+    content: attr(data-label);
+    font: var(--text-label);
+    font-size: 1rem;
+    letter-spacing: 0.01em;
+    color: var(--color-text-secondary);
+    text-align: left;
+  }
+  .tabla td.num { font: var(--text-body-strong); font-size: 1.125rem; font-variant-numeric: tabular-nums; }
+  .tabla .td-evento { display: block; }
+  .tabla .td-evento::before { display: block; margin-bottom: var(--space-1); }
+  .tabla tfoot tr { background: var(--color-surface-alt); border-top: 2px solid var(--color-border-subtle); }
+  .tabla tfoot td:first-child { display: block; font: var(--text-body-strong); font-size: 1.125rem; }
+}
+
+/* Total del día (flujo C) */
+.total-line { font: var(--text-body); font-size: 1.125rem; }
+.total-line strong { font: var(--text-body-strong); font-size: 1.125rem; font-variant-numeric: tabular-nums; }
+.total-line__delta { display: block; margin-top: var(--space-1); font: var(--text-small); font-size: 1rem; color: var(--color-info); }
+
+/* ============ Marcos de pantalla ============ */
+/* Flujos A y B: presentación de teléfono (móvil primero), centrada en pantallas grandes */
+.phone {
+  display: flex;
+  flex-direction: column;
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--color-surface-alt);
+}
+.phone__content {
+  flex: 1;
+  display: grid;
+  gap: var(--space-5);
+  align-content: start;
+  padding: var(--space-4);
+}
+@media (min-width: 480px) {
+  .phone { border-left: 1px solid var(--color-border-subtle); border-right: 1px solid var(--color-border-subtle); }
+}
+
+/* Flujo C: aplicación responsiva real (móvil a escritorio) */
+.app-wide { display: flex; flex-direction: column; min-height: 100vh; }
+.container {
+  flex: 1;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-4);
+  display: grid;
+  gap: var(--space-5);
+  align-content: start;
+}
+@media (min-width: 768px) { .container { padding: var(--space-5); } }
+@media (min-width: 1280px) { .container { padding: var(--space-6); } }
+
+/* Encabezado de página (flujo C) */
+.page-head { display: grid; gap: var(--space-2); }
+.page-head__row { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.page-head__title { font: var(--text-headline); font-size: 1.5rem; }
+.page-head__sub { font: var(--text-small); font-size: 1rem; color: var(--color-text-secondary); }
+
+/* ============ Pie de navegación del prototipo (no es parte del producto) ============ */
+.proto {
+  display: grid;
+  gap: var(--space-2);
+  background: var(--color-neutral-tint);
+  border-top: 1px solid var(--color-border-subtle);
+  padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom));
+}
+.proto__label { font: var(--text-small); font-size: 1rem; color: var(--color-text-secondary); }
+.proto__nav { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.proto__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--color-primary);
+  font: var(--text-label);
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+}
+.proto__link:hover { background: var(--color-surface-alt); }
+
+/* ============ Índice del prototipo (pantalla de inicio) ============ */
+.doc {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4) var(--space-7);
+  display: grid;
+  gap: var(--space-5);
+}
+.doc__title { font: var(--text-display); font-size: 1.875rem; }
+.doc__intro { font: var(--text-body); font-size: 1.125rem; }
+.doc__notes {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+}
+.doc__notes li {
+  position: relative;
+  padding-left: var(--space-4);
+  font: var(--text-small);
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+}
+.doc__notes li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-primary);
+}
+.flow-card { display: grid; gap: var(--space-3); }
+.flow-card__title { font: var(--text-title); font-size: 1.25rem; }
+.flow-card__meta { font: var(--text-small); font-size: 1rem; color: var(--color-text-secondary); }
+.flow-links { display: grid; gap: var(--space-1); }
+.flow-links a {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 48px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+}
+.flow-links a:hover { background: var(--color-surface-alt); }
+.flow-links__code {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  background: var(--color-neutral-tint);
+  color: var(--color-text-secondary);
+  font: var(--text-label);
+  font-size: 1rem;
+}
+.flow-links__name { flex: 1; color: var(--color-primary); font: var(--text-label); font-size: 1rem; letter-spacing: 0.01em; }
+.flow-links__chev { width: 20px; height: 20px; flex: none; color: var(--color-text-secondary); }
+.doc__sources { font: var(--text-small); font-size: 1rem; color: var(--color-text-secondary); }
+
+/* ============ Movimiento (design system: Regla del Movimiento Breve) ============ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- Sprite de iconos SVG en línea (trazo 2 px, 24 px; design system: Componentes) -->
+<svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-7-5.1-7-11a7 7 0 0 1 14 0c0 5.9-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4 2.5 20h19L12 4z"/><path d="M12 10v4M12 17.2v.01"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></symbol>
+    <symbol id="i-wifi-off" viewBox="0 0 24 24"><path d="M2.5 9.5C8.5 4.5 15.5 4.5 21.5 9.5"/><path d="M6 13c3.5-3 8.5-3 12 0"/><path d="M9.5 16.5c1.5-1.2 3.5-1.2 5 0"/><path d="M12 20h.01"/><path d="M3 3l18 18"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 21 21"/></symbol>
+    <symbol id="i-qr" viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/><path d="M14 14h3v3h-3z"/><path d="M20 14h.01M14 20h.01M20 20h.01"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></symbol>
+    <symbol id="i-food" viewBox="0 0 24 24"><path d="M5 8h11v6a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5V8z"/><path d="M16 9h2a2.5 2.5 0 0 1 0 5h-2"/><path d="M4 21h13"/></symbol>
+    <symbol id="i-news" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 9h4M7 13h4M7 17h4M14 9h4M14 13h4M14 17h4"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 8h8M18 8h2M4 16h2M12 16h8"/><circle cx="15" cy="8" r="2"/><circle cx="8" cy="16" r="2"/></symbol>
+    <symbol id="i-clipboard" viewBox="0 0 24 24"><rect x="6" y="5" width="12" height="16" rx="2"/><path d="M9 5V4a3 3 0 0 1 6 0v1"/><path d="M9 14l2 2 4-4"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M12 19V5"/><path d="M6 11l6-6 6 6"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="11" r="2"/><path d="M5.5 16c.6-1.4 1.8-2 3-2s2.4.6 3 2"/><path d="M14 9h5M14 13h5"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+  </defs>
+</svg>
+
+<main class="app-root">
+
+  <!-- ==================== ÍNDICE DEL PROTOTIPO ==================== -->
+  <section class="screen" id="inicio">
+    <div class="doc">
+      <header class="doc__header">
+        <h1 class="doc__title">BienestarPro</h1>
+        <p class="doc__intro">Prototipo de los tres flujos críticos para la validación con usuarios (Fase 3, UX). Baja-media fidelidad, en un solo archivo: funciona sin conexión y sin instalación.</p>
+      </header>
+      <ul class="doc__notes">
+        <li>Los nombres, documentos y fichas son datos sintéticos de ejemplo.</li>
+        <li>La franja gris del final de cada pantalla es navegación del prototipo; no es parte del producto.</li>
+        <li>Los destinos del menú del producto que no tienen pantalla en este prototipo no cambian de pantalla.</li>
+        <li>En la implementación las acciones serán botones; en este prototipo toda interacción navega con enlaces.</li>
+      </ul>
+
+      <section class="card flow-card" aria-labelledby="flujo-a">
+        <h2 class="flow-card__title" id="flujo-a">Flujo A — Confirmar asistencia</h2>
+        <p class="flow-card__meta">Rol: Aprendiz · Caso de uso CU-12 · Dispositivo: móvil</p>
+        <ul class="flow-links">
+          <li><a href="#a1"><span class="flow-links__code">A1</span><span class="flow-links__name">Convocatorias (tarjeta de evento)</span><svg class="ic flow-links__chev" aria-hidden="true"><use href="#i-chev"/></svg></a></li>
+          <li><a href="#a2"><span class="flow-links__code">A2</span><span class="flow-links__name">Detalle del evento (confirmar o no asistir)</span><svg class="ic flow-links__chev" aria-hidden="true"><use href="#i-chev"/></svg></a></li>
+          <li><a href="#a3"><span class="flow-links__code">A3</span><span class="flow-links__name">Asistencia confirmada</span><svg class="ic flow-links__chev" aria-hidden="true"><use href="#i-chev"/></svg></a></li>
+          <li><a href="#a4"><span class="flow-links__code">A4</span><span class="flow-links__name">Plazo vencido</span><svg class="ic flow-links__chev" aria-hidden="true"><use href="#i-chev"/></svg></a></li>
+        </ul>
+      </section>
+
+      <section class="card flow-card" aria-labelledby="flujo-b">
+        <h2 class="flow-card__title" id="flujo-b">Flujo B — Registrar entrega de refrigerio</h2>
+        <p class="flow-card__meta">Rol: Auxiliar de Bienestar · Caso de uso CU-14 · Dispositivo: móvil o tablet</p>
+        <ul class="flow-links">
+          <li><a href="#b1"><span class="flow-links__code">B1</span><span class="flow-links__name">Entrega del evento (escanear y contador)</span><svg class="ic flow-links__chev" aria-hidden="true"><use href="#i-chev"/></svg></a></li>
+          <li><a href="#b2"><span class="flow-links__code">B2</span><span class="flow-links__name">Resultado correcto del escaneo</span><svg class="ic flow-links__chev" aria-hidden="true"><use href="#i-chev"/></svg></a></li>
+          <li><a href="#b3"><span class="flow-links__code">B3</span><span class="flow-links__name">Rechazo con motivo</span><svg class="ic flow-links__chev" aria-hidden="true"><use href="#i-chev"/></svg></a></li>
+          <li><a href="#b4"><span class="flow-links__code">B4</span><span class="flow-links__name">Entrega sin conexión</span><svg class="ic flow-links__chev" aria-hidden="true"><use href="#i-chev"/></svg></a></li>
+          <li><a href="#b5"><span class="flow-links__code">B5</span><span class="flow-links__name">Entrega manual (buscar por documento)</span><svg class="ic flow-links__chev" aria-hidden="true"><use href="#i-chev"/></svg></a></li>
+        </ul>
+      </section>
+
+      <section class="card flow-card" aria-labelledby="flujo-c">
+        <h2 class="flow-card__title" id="flujo-c">Flujo C — Consolidado para cafetería</h2>
+        <p class="flow-card__meta">Rol: Cafetería · Caso de uso CU-15 · Dispositivo: móvil o escritorio</p>
+        <ul class="flow-links">
+          <li><a href="#c1"><span class="flow-links__code">C1</span><span class="flow-links__name">Consolidado del día por jornada y evento</span><svg class="ic flow-links__chev" aria-hidden="true"><use href="#i-chev"/></svg></a></li>
+          <li><a href="#c2"><span class="flow-links__code">C2</span><span class="flow-links__name">Preparación marcada</span><svg class="ic flow-links__chev" aria-hidden="true"><use href="#i-chev"/></svg></a></li>
+          <li><a href="#c3"><span class="flow-links__code">C3</span><span class="flow-links__name">Consolidado actualizado (aviso)</span><svg class="ic flow-links__chev" aria-hidden="true"><use href="#i-chev"/></svg></a></li>
+        </ul>
+      </section>
+
+      <p class="doc__sources">Design system: <a href="../02-design-system.md">docs/03-ux/02-design-system.md</a> (v0.1) · Casos de uso: <a href="../../01-requisitos/02-casos-de-uso.md">docs/01-requisitos/02-casos-de-uso.md</a> (CU-12, CU-14, CU-15)</p>
+    </div>
+  </section>
+
+  <!-- ==================== FLUJO A — APRENDIZ (CU-12) ==================== -->
+
+  <!-- A1: Convocatorias (tarjeta de evento) -->
+  <section class="screen" id="a1">
+    <div class="phone">
+      <header class="appbar">
+        <h1 class="appbar__title">Refrigerios</h1>
+      </header>
+      <div class="phone__content">
+        <h2 class="section-title">Tus convocatorias</h2>
+        <article class="card event-card" aria-labelledby="a1-evt1">
+          <div class="event-card__head">
+            <h3 class="event-card__title" id="a1-evt1">Refrigerio de media jornada</h3>
+            <span class="chip chip--success"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Abierto</span>
+          </div>
+          <ul class="event-card__meta">
+            <li class="meta"><svg class="ic" aria-hidden="true"><use href="#i-cal"/></svg>martes 13 de octubre de 2026</li>
+            <li class="meta"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>Jornada: Mañana</li>
+            <li class="meta"><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg>Cafetería — Sede Norte</li>
+            <li class="meta"><svg class="ic" aria-hidden="true"><use href="#i-doc"/></svg>Ficha 2847012</li>
+          </ul>
+          <a class="btn btn--primary btn--block" href="#a2">Confirmar asistencia</a>
+        </article>
+        <article class="card event-card" aria-labelledby="a1-evt2">
+          <div class="event-card__head">
+            <h3 class="event-card__title" id="a1-evt2">Refrigerio de cierre de trimestre</h3>
+            <span class="chip chip--warning"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>Plazo vencido</span>
+          </div>
+          <ul class="event-card__meta">
+            <li class="meta"><svg class="ic" aria-hidden="true"><use href="#i-cal"/></svg>viernes 16 de octubre de 2026</li>
+            <li class="meta"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>Jornada: Tarde</li>
+            <li class="meta"><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg>Cafetería — Sede Norte</li>
+            <li class="meta"><svg class="ic" aria-hidden="true"><use href="#i-doc"/></svg>Ficha 2847013</li>
+          </ul>
+          <p class="event-card__status">El plazo para confirmar terminó.</p>
+          <a class="btn btn--tertiary" href="#a4">Ver detalle</a>
+        </article>
+      </div>
+      <nav class="bottomnav" aria-label="Secciones">
+        <a class="bottomnav__item" href="#a1"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg>Inicio</a>
+        <span class="bottomnav__item bottomnav__item--active" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-food"/></svg>Refrigerios</span>
+        <a class="bottomnav__item" href="#a1"><svg class="ic" aria-hidden="true"><use href="#i-news"/></svg>Noticias</a>
+        <a class="bottomnav__item" href="#a1"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg>Ajustes</a>
+      </nav>
+      <footer class="proto">
+        <p class="proto__label">Prototipo · Flujo A (Aprendiz) · Pantalla A1 de 4 · datos de ejemplo</p>
+        <nav class="proto__nav" aria-label="Navegación del prototipo">
+          <a class="proto__link" href="#inicio">Índice</a>
+          <a class="proto__link" href="#a2">A2 · Detalle del evento →</a>
+        </nav>
+      </footer>
+    </div>
+  </section>
+
+  <!-- A2: Detalle del evento (confirmar o no asistir) -->
+  <section class="screen" id="a2">
+    <div class="phone">
+      <header class="appbar">
+        <a class="appbar__back" href="#a1" aria-label="Volver a convocatorias"><svg class="ic" aria-hidden="true"><use href="#i-back"/></svg></a>
+        <h1 class="appbar__title">Detalle del evento</h1>
+      </header>
+      <div class="phone__content">
+        <div class="event-head">
+          <span class="chip chip--success"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Abierto</span>
+          <h2 class="event-head__title">Refrigerio de media jornada</h2>
+        </div>
+        <dl class="details">
+          <div class="details__row">
+            <dt><svg class="ic" aria-hidden="true"><use href="#i-cal"/></svg>Fecha</dt>
+            <dd>martes 13 de octubre de 2026</dd>
+          </div>
+          <div class="details__row">
+            <dt><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>Jornada</dt>
+            <dd>Mañana</dd>
+          </div>
+          <div class="details__row">
+            <dt><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg>Lugar</dt>
+            <dd>Cafetería — Sede Norte</dd>
+          </div>
+          <div class="details__row">
+            <dt><svg class="ic" aria-hidden="true"><use href="#i-doc"/></svg>Ficha</dt>
+            <dd>2847012</dd>
+          </div>
+        </dl>
+        <p class="meta"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>Puedes confirmar hasta hoy, lunes 12 de octubre, 6:00 p. m.</p>
+        <div class="actions">
+          <a class="btn btn--primary btn--block" href="#a3">Confirmar asistencia</a>
+          <a class="btn btn--secondary btn--block" href="#a1">No voy a asistir</a>
+        </div>
+      </div>
+      <nav class="bottomnav" aria-label="Secciones">
+        <a class="bottomnav__item" href="#a2"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg>Inicio</a>
+        <span class="bottomnav__item bottomnav__item--active" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-food"/></svg>Refrigerios</span>
+        <a class="bottomnav__item" href="#a2"><svg class="ic" aria-hidden="true"><use href="#i-news"/></svg>Noticias</a>
+        <a class="bottomnav__item" href="#a2"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg>Ajustes</a>
+      </nav>
+      <footer class="proto">
+        <p class="proto__label">Prototipo · Flujo A (Aprendiz) · Pantalla A2 de 4 · datos de ejemplo</p>
+        <nav class="proto__nav" aria-label="Navegación del prototipo">
+          <a class="proto__link" href="#a1">← A1 · Convocatorias</a>
+          <a class="proto__link" href="#inicio">Índice</a>
+          <a class="proto__link" href="#a3">A3 · Confirmada →</a>
+        </nav>
+      </footer>
+    </div>
+  </section>
+
+  <!-- A3: Asistencia confirmada -->
+  <section class="screen" id="a3">
+    <div class="phone">
+      <header class="appbar">
+        <a class="appbar__back" href="#a1" aria-label="Volver a convocatorias"><svg class="ic" aria-hidden="true"><use href="#i-back"/></svg></a>
+        <h1 class="appbar__title">Detalle del evento</h1>
+      </header>
+      <div class="phone__content">
+        <div class="banner banner--success" role="status">
+          <svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>
+          <div class="banner__body">
+            <p class="banner__lead">Asistencia confirmada.</p>
+            <p class="banner__text">Te esperamos el martes 13 de octubre.</p>
+          </div>
+        </div>
+        <div class="event-head">
+          <span class="chip chip--success"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Confirmado</span>
+          <h2 class="event-head__title">Refrigerio de media jornada</h2>
+        </div>
+        <dl class="details">
+          <div class="details__row">
+            <dt><svg class="ic" aria-hidden="true"><use href="#i-cal"/></svg>Fecha</dt>
+            <dd>martes 13 de octubre de 2026</dd>
+          </div>
+          <div class="details__row">
+            <dt><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>Jornada</dt>
+            <dd>Mañana</dd>
+          </div>
+          <div class="details__row">
+            <dt><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg>Lugar</dt>
+            <dd>Cafetería — Sede Norte</dd>
+          </div>
+          <div class="details__row">
+            <dt><svg class="ic" aria-hidden="true"><use href="#i-doc"/></svg>Ficha</dt>
+            <dd>2847012</dd>
+          </div>
+        </dl>
+        <p class="meta"><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg>El día del evento presenta tu documento en la cafetería.</p>
+        <div class="actions">
+          <a class="btn btn--secondary btn--block" href="#a1">Cancelar asistencia</a>
+        </div>
+        <section class="variant" aria-labelledby="a3-var">
+          <h2 class="variant__title" id="a3-var">Si tocas «Cancelar asistencia»</h2>
+          <div class="sheet" role="group" aria-labelledby="a3-dialogo">
+            <h3 class="sheet__title" id="a3-dialogo">¿Cancelar tu asistencia?</h3>
+            <p class="sheet__text">Se libera tu cupo para otro aprendiz.</p>
+            <div class="actions">
+              <a class="btn btn--danger btn--block" href="#a1">Sí, cancelar</a>
+              <a class="btn btn--primary btn--block" href="#a3">Seguir inscrito</a>
+            </div>
+          </div>
+        </section>
+      </div>
+      <nav class="bottomnav" aria-label="Secciones">
+        <a class="bottomnav__item" href="#a3"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg>Inicio</a>
+        <span class="bottomnav__item bottomnav__item--active" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-food"/></svg>Refrigerios</span>
+        <a class="bottomnav__item" href="#a3"><svg class="ic" aria-hidden="true"><use href="#i-news"/></svg>Noticias</a>
+        <a class="bottomnav__item" href="#a3"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg>Ajustes</a>
+      </nav>
+      <footer class="proto">
+        <p class="proto__label">Prototipo · Flujo A (Aprendiz) · Pantalla A3 de 4 · datos de ejemplo</p>
+        <nav class="proto__nav" aria-label="Navegación del prototipo">
+          <a class="proto__link" href="#a2">← A2 · Detalle</a>
+          <a class="proto__link" href="#inicio">Índice</a>
+          <a class="proto__link" href="#a4">A4 · Plazo vencido →</a>
+        </nav>
+      </footer>
+    </div>
+  </section>
+
+  <!-- A4: Plazo vencido -->
+  <section class="screen" id="a4">
+    <div class="phone">
+      <header class="appbar">
+        <a class="appbar__back" href="#a1" aria-label="Volver a convocatorias"><svg class="ic" aria-hidden="true"><use href="#i-back"/></svg></a>
+        <h1 class="appbar__title">Detalle del evento</h1>
+      </header>
+      <div class="phone__content">
+        <div class="banner banner--warning" role="status">
+          <svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>
+          <div class="banner__body">
+            <p class="banner__lead">El plazo para confirmar terminó.</p>
+            <p class="banner__text">La ventana de confirmación de este evento cerró el viernes 9 de octubre a las 6:00 p. m.</p>
+          </div>
+        </div>
+        <div class="event-head">
+          <span class="chip chip--warning"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>Plazo vencido</span>
+          <h2 class="event-head__title">Refrigerio de cierre de trimestre</h2>
+        </div>
+        <dl class="details">
+          <div class="details__row">
+            <dt><svg class="ic" aria-hidden="true"><use href="#i-cal"/></svg>Fecha</dt>
+            <dd>viernes 16 de octubre de 2026</dd>
+          </div>
+          <div class="details__row">
+            <dt><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>Jornada</dt>
+            <dd>Tarde</dd>
+          </div>
+          <div class="details__row">
+            <dt><svg class="ic" aria-hidden="true"><use href="#i-pin"/></svg>Lugar</dt>
+            <dd>Cafetería — Sede Norte</dd>
+          </div>
+          <div class="details__row">
+            <dt><svg class="ic" aria-hidden="true"><use href="#i-doc"/></svg>Ficha</dt>
+            <dd>2847013</dd>
+          </div>
+        </dl>
+        <a class="btn btn--tertiary" href="#a1">Ver próximos eventos</a>
+      </div>
+      <nav class="bottomnav" aria-label="Secciones">
+        <a class="bottomnav__item" href="#a4"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg>Inicio</a>
+        <span class="bottomnav__item bottomnav__item--active" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-food"/></svg>Refrigerios</span>
+        <a class="bottomnav__item" href="#a4"><svg class="ic" aria-hidden="true"><use href="#i-news"/></svg>Noticias</a>
+        <a class="bottomnav__item" href="#a4"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg>Ajustes</a>
+      </nav>
+      <footer class="proto">
+        <p class="proto__label">Prototipo · Flujo A (Aprendiz) · Pantalla A4 de 4 · datos de ejemplo</p>
+        <nav class="proto__nav" aria-label="Navegación del prototipo">
+          <a class="proto__link" href="#a1">← A1 · Convocatorias</a>
+          <a class="proto__link" href="#inicio">Índice</a>
+          <a class="proto__link" href="#b1">Flujo B: B1 · Entrega →</a>
+        </nav>
+      </footer>
+    </div>
+  </section>
+
+  <!-- ==================== FLUJO B — AUXILIAR (CU-14) ==================== -->
+
+  <!-- B1: Entrega del evento (escanear y contador) -->
+  <section class="screen" id="b1">
+    <div class="phone">
+      <header class="appbar appbar--stack">
+        <div class="appbar__row">
+          <a class="appbar__back" href="#inicio" aria-label="Volver al índice del prototipo"><svg class="ic" aria-hidden="true"><use href="#i-back"/></svg></a>
+          <h1 class="appbar__title">Entrega de refrigerios</h1>
+        </div>
+        <p class="appbar__subtitle">Refrigerio de media jornada · Ficha 2847012 · martes 13 de octubre · Jornada Mañana</p>
+      </header>
+      <div class="phone__content">
+        <div class="card stats-card">
+          <dl class="stats">
+            <div class="stat"><dt>Convocados</dt><dd>40</dd></div>
+            <div class="stat"><dt>Confirmados</dt><dd>35</dd></div>
+            <div class="stat"><dt>Entregados</dt><dd>14</dd></div>
+          </dl>
+          <div class="progress">
+            <p class="progress__text">Entregados 14 de 35 confirmados</p>
+            <div class="progress__track" role="progressbar" aria-label="Entregados del evento" aria-valuenow="14" aria-valuemin="0" aria-valuemax="35">
+              <div class="progress__bar" style="width: 40%"></div>
+            </div>
+          </div>
+        </div>
+        <a class="btn btn--primary btn--block" href="#b2"><svg class="ic" aria-hidden="true"><use href="#i-qr"/></svg>Escanear código</a>
+        <div class="field">
+          <label class="field__label" for="b1-busqueda">Buscar aprendiz</label>
+          <div class="search">
+            <input class="field__input" id="b1-busqueda" type="text" placeholder="Nombre o número de documento" autocomplete="off" aria-describedby="b1-busqueda-ayuda">
+            <a class="btn btn--secondary" href="#b5">Buscar</a>
+          </div>
+          <p class="field__help" id="b1-busqueda-ayuda">Si el código no sirve, busca por documento y registra la entrega manual.</p>
+        </div>
+        <section aria-labelledby="b1-lista">
+          <h2 class="section-title" id="b1-lista">Aprendices del evento</h2>
+          <ul class="list">
+            <li class="list-row">
+              <div class="list-row__id">
+                <p class="list-row__name">Aprendiz de Ejemplo 2</p>
+                <p class="list-row__meta">CC 2.345.678.901 · Ficha 2847012 · Mañana</p>
+              </div>
+              <span class="chip chip--success list-row__chip"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Entregado 7:14 a. m.</span>
+            </li>
+            <li class="list-row">
+              <div class="list-row__id">
+                <p class="list-row__name">Aprendiz de Ejemplo 3</p>
+                <p class="list-row__meta">CC 3.456.789.012 · Ficha 2847012 · Mañana</p>
+              </div>
+              <span class="chip chip--neutral list-row__chip">Pendiente</span>
+            </li>
+            <li class="list-row">
+              <div class="list-row__id">
+                <p class="list-row__name">Aprendiz de Ejemplo 4</p>
+                <p class="list-row__meta">CC 4.567.890.123 · Ficha 2847012 · Mañana</p>
+                <p class="list-row__meta">Motivo: sin confirmación</p>
+              </div>
+              <span class="chip chip--error list-row__chip"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg>Rechazado</span>
+            </li>
+            <li class="list-row">
+              <div class="list-row__id">
+                <p class="list-row__name">Aprendiz de Ejemplo 5</p>
+                <p class="list-row__meta">CC 5.678.901.234 · Ficha 2847012 · Mañana</p>
+              </div>
+              <span class="chip chip--neutral list-row__chip">Pendiente</span>
+            </li>
+          </ul>
+        </section>
+      </div>
+      <nav class="bottomnav" aria-label="Secciones">
+        <a class="bottomnav__item" href="#b1"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg>Inicio</a>
+        <span class="bottomnav__item bottomnav__item--active" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg>Entregas</span>
+        <a class="bottomnav__item" href="#b1"><svg class="ic" aria-hidden="true"><use href="#i-cal"/></svg>Eventos</a>
+        <a class="bottomnav__item" href="#b1"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg>Ajustes</a>
+      </nav>
+      <footer class="proto">
+        <p class="proto__label">Prototipo · Flujo B (Auxiliar) · Pantalla B1 de 5 · datos de ejemplo</p>
+        <nav class="proto__nav" aria-label="Navegación del prototipo">
+          <a class="proto__link" href="#inicio">Índice</a>
+          <a class="proto__link" href="#b2">B2 · Resultado →</a>
+        </nav>
+      </footer>
+    </div>
+  </section>
+
+  <!-- B2: Resultado correcto del escaneo -->
+  <section class="screen" id="b2">
+    <div class="phone">
+      <header class="appbar appbar--stack">
+        <div class="appbar__row">
+          <a class="appbar__back" href="#b1" aria-label="Volver a la entrega"><svg class="ic" aria-hidden="true"><use href="#i-back"/></svg></a>
+          <h1 class="appbar__title">Entrega de refrigerios</h1>
+        </div>
+        <p class="appbar__subtitle">Refrigerio de media jornada · Ficha 2847012 · martes 13 de octubre · Jornada Mañana</p>
+      </header>
+      <div class="phone__content">
+        <div class="banner banner--success" role="status">
+          <svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>
+          <div class="banner__body">
+            <p class="banner__lead">Entrega registrada:</p>
+            <p class="banner__text">Aprendiz de Ejemplo 2, 7:14 a. m.</p>
+          </div>
+        </div>
+        <div class="card result-card">
+          <svg class="ic result-card__icon" aria-hidden="true"><use href="#i-check"/></svg>
+          <p class="result-card__name">Aprendiz de Ejemplo 2</p>
+          <p class="result-card__meta">CC 2.345.678.901 · Ficha 2847012 · Jornada Mañana</p>
+          <span class="chip chip--success"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Entregado 7:14 a. m.</span>
+        </div>
+        <div class="card stats-card">
+          <div class="progress">
+            <p class="progress__text">Entregados 15 de 35 confirmados</p>
+            <div class="progress__track" role="progressbar" aria-label="Entregados del evento" aria-valuenow="15" aria-valuemin="0" aria-valuemax="35">
+              <div class="progress__bar" style="width: 43%"></div>
+            </div>
+          </div>
+        </div>
+        <div class="actions">
+          <a class="btn btn--primary btn--block" href="#b1">Escanear siguiente código</a>
+          <a class="btn btn--tertiary" href="#b5">Registrar entrega manual</a>
+        </div>
+      </div>
+      <nav class="bottomnav" aria-label="Secciones">
+        <a class="bottomnav__item" href="#b2"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg>Inicio</a>
+        <span class="bottomnav__item bottomnav__item--active" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg>Entregas</span>
+        <a class="bottomnav__item" href="#b2"><svg class="ic" aria-hidden="true"><use href="#i-cal"/></svg>Eventos</a>
+        <a class="bottomnav__item" href="#b2"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg>Ajustes</a>
+      </nav>
+      <footer class="proto">
+        <p class="proto__label">Prototipo · Flujo B (Auxiliar) · Pantalla B2 de 5 · datos de ejemplo</p>
+        <nav class="proto__nav" aria-label="Navegación del prototipo">
+          <a class="proto__link" href="#b1">← B1 · Entrega</a>
+          <a class="proto__link" href="#inicio">Índice</a>
+          <a class="proto__link" href="#b3">B3 · Rechazo →</a>
+        </nav>
+      </footer>
+    </div>
+  </section>
+
+  <!-- B3: Rechazo con motivo -->
+  <section class="screen" id="b3">
+    <div class="phone">
+      <header class="appbar appbar--stack">
+        <div class="appbar__row">
+          <a class="appbar__back" href="#b1" aria-label="Volver a la entrega"><svg class="ic" aria-hidden="true"><use href="#i-back"/></svg></a>
+          <h1 class="appbar__title">Entrega de refrigerios</h1>
+        </div>
+        <p class="appbar__subtitle">Refrigerio de media jornada · Ficha 2847012 · martes 13 de octubre · Jornada Mañana</p>
+      </header>
+      <div class="phone__content">
+        <section aria-labelledby="b3-v1">
+          <h2 class="section-title" id="b3-v1">Código ya usado</h2>
+          <div class="banner banner--warning" role="status">
+            <svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg>
+            <div class="banner__body">
+              <p class="banner__lead">Este código ya se usó hoy a las 6:52 a. m.</p>
+              <p class="banner__text">El aprendiz ya recibió su refrigerio en este evento.</p>
+              <a class="btn btn--secondary" href="#b1">Ver entregas del evento</a>
+            </div>
+          </div>
+          <ul class="list">
+            <li class="list-row">
+              <div class="list-row__id">
+                <p class="list-row__name">Aprendiz de Ejemplo 6</p>
+                <p class="list-row__meta">CC 6.789.012.345 · Ficha 2847012 · Mañana</p>
+              </div>
+              <span class="chip chip--success list-row__chip"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Entregado 6:52 a. m.</span>
+            </li>
+          </ul>
+          <a class="btn btn--primary btn--block" href="#b1">Escanear siguiente código</a>
+        </section>
+        <section class="variant" aria-labelledby="b3-v2">
+          <h2 class="variant__title" id="b3-v2">Variante: sin derecho o sin confirmación</h2>
+          <div class="banner banner--warning" role="status">
+            <svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg>
+            <div class="banner__body">
+              <p class="banner__lead">No confirmó asistencia.</p>
+              <p class="banner__text">No puede recibir el refrigerio sin autorización.</p>
+            </div>
+          </div>
+          <ul class="list">
+            <li class="list-row">
+              <div class="list-row__id">
+                <p class="list-row__name">Aprendiz de Ejemplo 7</p>
+                <p class="list-row__meta">CC 7.890.123.456 · Ficha 2847012 · Mañana</p>
+              </div>
+              <span class="chip chip--warning list-row__chip"><svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg>Sin confirmación</span>
+            </li>
+          </ul>
+          <div class="actions">
+            <a class="btn btn--secondary btn--block" href="#b5">Registrar con autorización</a>
+            <a class="btn btn--tertiary" href="#b1">Escanear siguiente código</a>
+          </div>
+        </section>
+      </div>
+      <nav class="bottomnav" aria-label="Secciones">
+        <a class="bottomnav__item" href="#b3"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg>Inicio</a>
+        <span class="bottomnav__item bottomnav__item--active" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg>Entregas</span>
+        <a class="bottomnav__item" href="#b3"><svg class="ic" aria-hidden="true"><use href="#i-cal"/></svg>Eventos</a>
+        <a class="bottomnav__item" href="#b3"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg>Ajustes</a>
+      </nav>
+      <footer class="proto">
+        <p class="proto__label">Prototipo · Flujo B (Auxiliar) · Pantalla B3 de 5 · datos de ejemplo</p>
+        <nav class="proto__nav" aria-label="Navegación del prototipo">
+          <a class="proto__link" href="#b2">← B2 · Resultado</a>
+          <a class="proto__link" href="#inicio">Índice</a>
+          <a class="proto__link" href="#b4">B4 · Sin conexión →</a>
+        </nav>
+      </footer>
+    </div>
+  </section>
+
+  <!-- B4: Entrega sin conexión -->
+  <section class="screen" id="b4">
+    <div class="phone">
+      <header class="appbar appbar--stack">
+        <div class="appbar__row">
+          <a class="appbar__back" href="#b1" aria-label="Volver a la entrega"><svg class="ic" aria-hidden="true"><use href="#i-back"/></svg></a>
+          <h1 class="appbar__title">Entrega de refrigerios</h1>
+        </div>
+        <p class="appbar__subtitle">Refrigerio de media jornada · Ficha 2847012 · martes 13 de octubre · Jornada Mañana</p>
+      </header>
+      <div class="phone__content">
+        <div class="banner banner--neutral" role="status">
+          <svg class="ic" aria-hidden="true"><use href="#i-wifi-off"/></svg>
+          <div class="banner__body">
+            <p class="banner__lead">Sin conexión.</p>
+            <p class="banner__text">Puedes seguir registrando entregas; se envían cuando vuelva la conexión.</p>
+          </div>
+        </div>
+        <p class="pending-strip"><svg class="ic" aria-hidden="true"><use href="#i-send"/></svg>3 entregas por enviar</p>
+        <div class="card stats-card">
+          <dl class="stats">
+            <div class="stat"><dt>Convocados</dt><dd>40</dd></div>
+            <div class="stat"><dt>Confirmados</dt><dd>35</dd></div>
+            <div class="stat"><dt>Entregados</dt><dd>14</dd></div>
+          </dl>
+          <div class="progress">
+            <p class="progress__text">Entregados 14 de 35 confirmados</p>
+            <div class="progress__track" role="progressbar" aria-label="Entregados del evento" aria-valuenow="14" aria-valuemin="0" aria-valuemax="35">
+              <div class="progress__bar" style="width: 40%"></div>
+            </div>
+          </div>
+        </div>
+        <a class="btn btn--primary btn--block" href="#b2"><svg class="ic" aria-hidden="true"><use href="#i-qr"/></svg>Escanear código</a>
+        <section aria-labelledby="b4-lista">
+          <h2 class="section-title" id="b4-lista">Aprendices del evento</h2>
+          <ul class="list">
+            <li class="list-row">
+              <div class="list-row__id">
+                <p class="list-row__name">Aprendiz de Ejemplo 8</p>
+                <p class="list-row__meta">CC 8.901.234.567 · Ficha 2847012 · Mañana</p>
+              </div>
+              <span class="chip chip--info list-row__chip"><svg class="ic" aria-hidden="true"><use href="#i-send"/></svg>Enviando...</span>
+            </li>
+            <li class="list-row">
+              <div class="list-row__id">
+                <p class="list-row__name">Aprendiz de Ejemplo 9</p>
+                <p class="list-row__meta">CC 9.012.345.678 · Ficha 2847012 · Mañana</p>
+              </div>
+              <span class="chip chip--info list-row__chip"><svg class="ic" aria-hidden="true"><use href="#i-send"/></svg>Enviando...</span>
+            </li>
+            <li class="list-row">
+              <div class="list-row__id">
+                <p class="list-row__name">Aprendiz de Ejemplo 2</p>
+                <p class="list-row__meta">CC 2.345.678.901 · Ficha 2847012 · Mañana</p>
+              </div>
+              <span class="chip chip--success list-row__chip"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Entregado 7:02 a. m.</span>
+            </li>
+            <li class="list-row">
+              <div class="list-row__id">
+                <p class="list-row__name">Aprendiz de Ejemplo 3</p>
+                <p class="list-row__meta">CC 3.456.789.012 · Ficha 2847012 · Mañana</p>
+              </div>
+              <span class="chip chip--neutral list-row__chip">Pendiente</span>
+            </li>
+          </ul>
+        </section>
+      </div>
+      <nav class="bottomnav" aria-label="Secciones">
+        <a class="bottomnav__item" href="#b4"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg>Inicio</a>
+        <span class="bottomnav__item bottomnav__item--active" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg>Entregas</span>
+        <a class="bottomnav__item" href="#b4"><svg class="ic" aria-hidden="true"><use href="#i-cal"/></svg>Eventos</a>
+        <a class="bottomnav__item" href="#b4"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg>Ajustes</a>
+      </nav>
+      <footer class="proto">
+        <p class="proto__label">Prototipo · Flujo B (Auxiliar) · Pantalla B4 de 5 · datos de ejemplo</p>
+        <nav class="proto__nav" aria-label="Navegación del prototipo">
+          <a class="proto__link" href="#b3">← B3 · Rechazo</a>
+          <a class="proto__link" href="#inicio">Índice</a>
+          <a class="proto__link" href="#b5">B5 · Entrega manual →</a>
+        </nav>
+      </footer>
+    </div>
+  </section>
+
+  <!-- B5: Entrega manual (buscar por documento, motivo obligatorio) -->
+  <section class="screen" id="b5">
+    <div class="phone">
+      <header class="appbar">
+        <a class="appbar__back" href="#b1" aria-label="Volver a la entrega"><svg class="ic" aria-hidden="true"><use href="#i-back"/></svg></a>
+        <h1 class="appbar__title">Entrega manual</h1>
+      </header>
+      <div class="phone__content">
+        <div class="field">
+          <label class="field__label" for="b5-doc">Buscar por documento o nombre</label>
+          <div class="search">
+            <input class="field__input" id="b5-doc" type="text" value="1.098.765.432" autocomplete="off" aria-describedby="b5-doc-ayuda">
+            <a class="btn btn--secondary" href="#b5">Buscar</a>
+          </div>
+          <p class="field__help" id="b5-doc-ayuda">Escribe el número de documento del aprendiz.</p>
+        </div>
+        <section aria-labelledby="b5-resultado">
+          <h2 class="section-title" id="b5-resultado">Resultado de la búsqueda</h2>
+          <ul class="list">
+            <li class="list-row">
+              <div class="list-row__id">
+                <p class="list-row__name">Aprendiz de Ejemplo 1</p>
+                <p class="list-row__meta">CC 1.098.765.432 · Ficha 2847012 · Jornada Mañana</p>
+              </div>
+              <span class="chip chip--neutral list-row__chip">Pendiente</span>
+            </li>
+          </ul>
+        </section>
+        <section aria-labelledby="b5-hoja">
+          <h2 class="section-title" id="b5-hoja">Registrar la entrega</h2>
+          <div class="sheet" role="group" aria-labelledby="b5-hoja-t">
+            <h3 class="sheet__title" id="b5-hoja-t">¿Registrar entrega de Aprendiz de Ejemplo 1?</h3>
+            <div class="field">
+              <label class="field__label" for="b5-motivo">Motivo</label>
+              <input class="field__input" id="b5-motivo" type="text" placeholder="Escribe el motivo" autocomplete="off" aria-describedby="b5-motivo-ayuda">
+              <p class="field__help" id="b5-motivo-ayuda">Obligatorio. Por ejemplo: el aprendiz no tiene su código.</p>
+            </div>
+            <a class="btn btn--primary btn--block" href="#b1">Registrar entrega</a>
+          </div>
+        </section>
+        <section class="variant" aria-labelledby="b5-v1">
+          <h2 class="variant__title" id="b5-v1">Variante: si falta el motivo</h2>
+          <div class="sheet" role="group" aria-labelledby="b5-v1-t">
+            <h3 class="sheet__title" id="b5-v1-t">¿Registrar entrega de Aprendiz de Ejemplo 1?</h3>
+            <div class="field field--error">
+              <label class="field__label" for="b5-motivo-2">Motivo</label>
+              <input class="field__input" id="b5-motivo-2" type="text" autocomplete="off" aria-invalid="true" aria-describedby="b5-motivo-2-error">
+              <p class="field__error" id="b5-motivo-2-error" role="alert"><svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg>Escribe el motivo para registrar la entrega.</p>
+            </div>
+            <a class="btn btn--primary btn--block" href="#b1">Registrar entrega</a>
+          </div>
+        </section>
+        <section class="variant" aria-labelledby="b5-v2">
+          <h2 class="variant__title" id="b5-v2">Variante: si el aprendiz ya recibió su refrigerio</h2>
+          <div class="sheet" role="group" aria-labelledby="b5-v2-t">
+            <h3 class="sheet__title" id="b5-v2-t">¿Registrar entrega de Aprendiz de Ejemplo 1?</h3>
+            <div class="banner banner--warning" role="status">
+              <svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg>
+              <div class="banner__body">
+                <p class="banner__lead">Este aprendiz ya recibió su refrigerio hoy a las 7:14 a. m.</p>
+                <p class="banner__text">Si registras otra entrega, la acción queda registrada con tu usuario y el motivo.</p>
+              </div>
+            </div>
+            <div class="actions">
+              <a class="btn btn--danger btn--block" href="#b1">Registrar otra entrega</a>
+              <a class="btn btn--secondary btn--block" href="#b1">Volver</a>
+            </div>
+          </div>
+        </section>
+      </div>
+      <nav class="bottomnav" aria-label="Secciones">
+        <a class="bottomnav__item" href="#b5"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg>Inicio</a>
+        <span class="bottomnav__item bottomnav__item--active" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-clipboard"/></svg>Entregas</span>
+        <a class="bottomnav__item" href="#b5"><svg class="ic" aria-hidden="true"><use href="#i-cal"/></svg>Eventos</a>
+        <a class="bottomnav__item" href="#b5"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg>Ajustes</a>
+      </nav>
+      <footer class="proto">
+        <p class="proto__label">Prototipo · Flujo B (Auxiliar) · Pantalla B5 de 5 · datos de ejemplo</p>
+        <nav class="proto__nav" aria-label="Navegación del prototipo">
+          <a class="proto__link" href="#b4">← B4 · Sin conexión</a>
+          <a class="proto__link" href="#inicio">Índice</a>
+          <a class="proto__link" href="#c1">Flujo C: C1 · Consolidado →</a>
+        </nav>
+      </footer>
+    </div>
+  </section>
+
+  <!-- ==================== FLUJO C — CAFETERÍA (CU-15) ==================== -->
+
+  <!-- C1: Consolidado del día por jornada y evento -->
+  <section class="screen" id="c1">
+    <div class="app-wide">
+      <header class="topbar">
+        <div class="topbar__inner">
+          <p class="topbar__brand">BienestarPro</p>
+          <nav class="topbar__links" aria-label="Secciones">
+            <span class="topbar__link topbar__link--active" aria-current="page">Consolidado</span>
+            <a class="topbar__link" href="#c1">Ajustes</a>
+          </nav>
+          <p class="topbar__user"><span class="avatar" aria-hidden="true">CE</span><span class="topbar__username">Cafetería — Ejemplo</span></p>
+        </div>
+      </header>
+      <header class="appbar appbar--mobile-only">
+        <p class="appbar__title">Consolidado</p>
+      </header>
+      <div class="container">
+        <header class="page-head">
+          <div class="page-head__row">
+            <h1 class="page-head__title">Consolidado del martes 13 de octubre de 2026</h1>
+          </div>
+          <p class="page-head__sub">Preparación para mañana, por jornada y evento</p>
+        </header>
+        <a class="btn btn--primary btn--block" href="#c2">Marcar en preparación</a>
+        <div class="table-wrap">
+          <table class="tabla">
+            <caption class="sr-only">Consolidado del martes 13 de octubre de 2026 por jornada y evento</caption>
+            <thead>
+              <tr>
+                <th scope="col">Jornada</th>
+                <th scope="col">Evento</th>
+                <th scope="col" class="num">Convocados</th>
+                <th scope="col" class="num">Confirmados</th>
+                <th scope="col" class="num">A preparar</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td data-label="Jornada">Mañana</td>
+                <td class="td-evento" data-label="Evento"><span class="evt-name">Refrigerio de media jornada — Ficha 2847012</span></td>
+                <td class="num" data-label="Convocados">40</td>
+                <td class="num" data-label="Confirmados">32</td>
+                <td class="num" data-label="A preparar">32</td>
+              </tr>
+              <tr>
+                <td data-label="Jornada">Tarde</td>
+                <td class="td-evento" data-label="Evento"><span class="evt-name">Refrigerio de media jornada — Ficha 2847013</span></td>
+                <td class="num" data-label="Convocados">35</td>
+                <td class="num" data-label="Confirmados">28</td>
+                <td class="num" data-label="A preparar">28</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2">Total del día</td>
+                <td class="num" data-label="Convocados">75</td>
+                <td class="num" data-label="Confirmados">60</td>
+                <td class="num" data-label="A preparar">60</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <p class="total-line">Total a preparar: <strong>60</strong> refrigerios</p>
+        <p class="meta"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>Cantidades con las confirmaciones vigentes hoy, lunes 12 de octubre, 3:00 p. m.</p>
+      </div>
+      <nav class="bottomnav" aria-label="Secciones">
+        <a class="bottomnav__item" href="#c1"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg>Inicio</a>
+        <span class="bottomnav__item bottomnav__item--active" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg>Consolidado</span>
+        <a class="bottomnav__item" href="#c1"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg>Ajustes</a>
+      </nav>
+      <footer class="proto">
+        <p class="proto__label">Prototipo · Flujo C (Cafetería) · Pantalla C1 de 3 · datos de ejemplo</p>
+        <nav class="proto__nav" aria-label="Navegación del prototipo">
+          <a class="proto__link" href="#inicio">Índice</a>
+          <a class="proto__link" href="#c2">C2 · Preparación →</a>
+        </nav>
+      </footer>
+    </div>
+  </section>
+
+  <!-- C2: Preparación marcada -->
+  <section class="screen" id="c2">
+    <div class="app-wide">
+      <header class="topbar">
+        <div class="topbar__inner">
+          <p class="topbar__brand">BienestarPro</p>
+          <nav class="topbar__links" aria-label="Secciones">
+            <span class="topbar__link topbar__link--active" aria-current="page">Consolidado</span>
+            <a class="topbar__link" href="#c2">Ajustes</a>
+          </nav>
+          <p class="topbar__user"><span class="avatar" aria-hidden="true">CE</span><span class="topbar__username">Cafetería — Ejemplo</span></p>
+        </div>
+      </header>
+      <header class="appbar appbar--mobile-only">
+        <p class="appbar__title">Consolidado</p>
+      </header>
+      <div class="container">
+        <div class="banner banner--success" role="status">
+          <svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>
+          <div class="banner__body">
+            <p class="banner__lead">Preparación marcada.</p>
+            <p class="banner__text">Quedó marcada hoy, lunes 12 de octubre, a las 4:10 p. m.</p>
+          </div>
+        </div>
+        <header class="page-head">
+          <div class="page-head__row">
+            <h1 class="page-head__title">Consolidado del martes 13 de octubre de 2026</h1>
+            <span class="chip chip--success"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>En preparación</span>
+          </div>
+          <p class="page-head__sub">Preparación para mañana, por jornada y evento</p>
+        </header>
+        <div class="table-wrap">
+          <table class="tabla">
+            <caption class="sr-only">Consolidado del martes 13 de octubre de 2026 por jornada y evento</caption>
+            <thead>
+              <tr>
+                <th scope="col">Jornada</th>
+                <th scope="col">Evento</th>
+                <th scope="col" class="num">Convocados</th>
+                <th scope="col" class="num">Confirmados</th>
+                <th scope="col" class="num">A preparar</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td data-label="Jornada">Mañana</td>
+                <td class="td-evento" data-label="Evento"><span class="evt-name">Refrigerio de media jornada — Ficha 2847012</span></td>
+                <td class="num" data-label="Convocados">40</td>
+                <td class="num" data-label="Confirmados">32</td>
+                <td class="num" data-label="A preparar">32</td>
+              </tr>
+              <tr>
+                <td data-label="Jornada">Tarde</td>
+                <td class="td-evento" data-label="Evento"><span class="evt-name">Refrigerio de media jornada — Ficha 2847013</span></td>
+                <td class="num" data-label="Convocados">35</td>
+                <td class="num" data-label="Confirmados">28</td>
+                <td class="num" data-label="A preparar">28</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2">Total del día</td>
+                <td class="num" data-label="Convocados">75</td>
+                <td class="num" data-label="Confirmados">60</td>
+                <td class="num" data-label="A preparar">60</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <p class="total-line">Total a preparar: <strong>60</strong> refrigerios</p>
+        <p class="meta"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>Cantidades con las confirmaciones vigentes hoy, lunes 12 de octubre, 4:10 p. m.</p>
+      </div>
+      <nav class="bottomnav" aria-label="Secciones">
+        <a class="bottomnav__item" href="#c2"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg>Inicio</a>
+        <span class="bottomnav__item bottomnav__item--active" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg>Consolidado</span>
+        <a class="bottomnav__item" href="#c2"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg>Ajustes</a>
+      </nav>
+      <footer class="proto">
+        <p class="proto__label">Prototipo · Flujo C (Cafetería) · Pantalla C2 de 3 · datos de ejemplo</p>
+        <nav class="proto__nav" aria-label="Navegación del prototipo">
+          <a class="proto__link" href="#c1">← C1 · Consolidado</a>
+          <a class="proto__link" href="#inicio">Índice</a>
+          <a class="proto__link" href="#c3">C3 · Actualización →</a>
+        </nav>
+      </footer>
+    </div>
+  </section>
+
+  <!-- C3: Consolidado actualizado (aviso) -->
+  <section class="screen" id="c3">
+    <div class="app-wide">
+      <header class="topbar">
+        <div class="topbar__inner">
+          <p class="topbar__brand">BienestarPro</p>
+          <nav class="topbar__links" aria-label="Secciones">
+            <span class="topbar__link topbar__link--active" aria-current="page">Consolidado</span>
+            <a class="topbar__link" href="#c3">Ajustes</a>
+          </nav>
+          <p class="topbar__user"><span class="avatar" aria-hidden="true">CE</span><span class="topbar__username">Cafetería — Ejemplo</span></p>
+        </div>
+      </header>
+      <header class="appbar appbar--mobile-only">
+        <p class="appbar__title">Consolidado</p>
+      </header>
+      <div class="container">
+        <div class="banner banner--info" role="status">
+          <svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg>
+          <div class="banner__body">
+            <p class="banner__lead">Consolidado actualizado.</p>
+            <p class="banner__text">La ficha 2847012 pasó de 32 a 35 confirmados después de marcar la preparación.</p>
+          </div>
+        </div>
+        <header class="page-head">
+          <div class="page-head__row">
+            <h1 class="page-head__title">Consolidado del martes 13 de octubre de 2026</h1>
+            <span class="chip chip--success"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>En preparación</span>
+          </div>
+          <p class="page-head__sub">Preparación para mañana, por jornada y evento</p>
+        </header>
+        <div class="table-wrap">
+          <table class="tabla">
+            <caption class="sr-only">Consolidado actualizado del martes 13 de octubre de 2026 por jornada y evento</caption>
+            <thead>
+              <tr>
+                <th scope="col">Jornada</th>
+                <th scope="col">Evento</th>
+                <th scope="col" class="num">Convocados</th>
+                <th scope="col" class="num">Confirmados</th>
+                <th scope="col" class="num">A preparar</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td data-label="Jornada">Mañana</td>
+                <td class="td-evento" data-label="Evento">
+                  <span class="evt-name">Refrigerio de media jornada — Ficha 2847012</span>
+                  <span class="table-note">3 confirmaciones nuevas</span>
+                </td>
+                <td class="num" data-label="Convocados">40</td>
+                <td class="num" data-label="Confirmados">35</td>
+                <td class="num" data-label="A preparar">35</td>
+              </tr>
+              <tr>
+                <td data-label="Jornada">Tarde</td>
+                <td class="td-evento" data-label="Evento"><span class="evt-name">Refrigerio de media jornada — Ficha 2847013</span></td>
+                <td class="num" data-label="Convocados">35</td>
+                <td class="num" data-label="Confirmados">28</td>
+                <td class="num" data-label="A preparar">28</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2">Total del día</td>
+                <td class="num" data-label="Convocados">75</td>
+                <td class="num" data-label="Confirmados">63</td>
+                <td class="num" data-label="A preparar">63</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <p class="total-line">Total a preparar: <strong>63</strong> refrigerios<span class="total-line__delta">3 refrigerios más que lo marcado</span></p>
+        <p class="meta"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>Cantidades con las confirmaciones vigentes hoy, lunes 12 de octubre, 5:40 p. m.</p>
+      </div>
+      <nav class="bottomnav" aria-label="Secciones">
+        <a class="bottomnav__item" href="#c3"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg>Inicio</a>
+        <span class="bottomnav__item bottomnav__item--active" aria-current="page"><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg>Consolidado</span>
+        <a class="bottomnav__item" href="#c3"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg>Ajustes</a>
+      </nav>
+      <footer class="proto">
+        <p class="proto__label">Prototipo · Flujo C (Cafetería) · Pantalla C3 de 3 · datos de ejemplo</p>
+        <nav class="proto__nav" aria-label="Navegación del prototipo">
+          <a class="proto__link" href="#c2">← C2 · Preparación</a>
+          <a class="proto__link" href="#inicio">Índice</a>
+          <a class="proto__link" href="#inicio">Volver al inicio</a>
+        </nav>
+      </footer>
+    </div>
+  </section>
+
+</main>
+</body>
+</html>
