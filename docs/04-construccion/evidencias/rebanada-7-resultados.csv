@@ -1,0 +1,11 @@
+﻿Pregunta,Tipo,Respuesta,Total,Porcentaje
+¿Participaste en la actividad de bienestar?,unica,Sí,3,100
+¿Participaste en la actividad de bienestar?,unica,No,0,0
+Califica la actividad (1 a 5),escala,4,3,
+Califica la actividad (1 a 5),escala,Promedio,4,
+
+Desglose por ficha (en anónimas se exigen 3 respuestas como mínimo)
+Ficha,Jornada,Respondientes,Pregunta,Tipo,Respuesta,Total,Porcentaje
+2847012,manana,3,¿Participaste en la actividad de bienestar?,unica,Sí,3,100
+2847012,manana,3,¿Participaste en la actividad de bienestar?,unica,No,0,0
+2847012,manana,3,Califica la actividad (1 a 5),escala,Promedio: 4,3,
