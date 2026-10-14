@@ -586,3 +586,128 @@ export const surveyAnswers = pgTable('survey_answers', {
   /** Valor de escala; NULL en unica/multiple. */
   scaleValue: integer('scale_value'),
 });
+
+/**
+ * M8 — Reuniones y agenda (rebanada 8). Reunión con convocados (personas o
+ * fichas), RSVP de las personas, recordatorios automáticos por el hub y acta
+ * con compromisos versionada (RF-36 a RF-39).
+ */
+
+/** Compromiso de un acta de reunión (M8). */
+export interface MeetingCommitment {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
+export const meetings = pgTable('meetings', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  centerId: uuid('center_id')
+    .notNull()
+    .references(() => centers.id),
+  title: text('title').notNull(),
+  description: text('description').notNull().default(''),
+  startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
+  endsAt: timestamp('ends_at', { withTimezone: true }),
+  /** Lugar físico o enlace virtual. */
+  location: text('location').notNull(),
+  /** agendada | realizada | cancelada */
+  status: text('status').notNull().default('agendada'),
+  organizerId: uuid('organizer_id')
+    .notNull()
+    .references(() => users.id),
+  /** Momento configurado para el recordatorio (RF-38). */
+  reminderAt: timestamp('reminder_at', { withTimezone: true }),
+  reminderSentAt: timestamp('reminder_sent_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const meetingInvitees = pgTable(
+  'meeting_invitees',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    centerId: uuid('center_id')
+      .notNull()
+      .references(() => centers.id),
+    meetingId: uuid('meeting_id')
+      .notNull()
+      .references(() => meetings.id),
+    /** usuario | ficha */
+    inviteeType: text('invitee_type').notNull(),
+    /** users.id o groups.id según el tipo. */
+    inviteeId: uuid('invitee_id').notNull(),
+    /** pendiente | confirmado | rechazado (aplica a convocados personas). */
+    rsvpStatus: text('rsvp_status').notNull().default('pendiente'),
+    respondedAt: timestamp('responded_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    unique('meeting_invitees_unique').on(
+      table.meetingId,
+      table.inviteeType,
+      table.inviteeId,
+    ),
+  ],
+);
+
+export const meetingMinutes = pgTable(
+  'meeting_minutes',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    centerId: uuid('center_id')
+      .notNull()
+      .references(() => centers.id),
+    meetingId: uuid('meeting_id')
+      .notNull()
+      .references(() => meetings.id),
+    topics: text('topics').notNull(),
+    /** Asistentes reales (texto libre; la UI prellena con los confirmados). */
+    attendees: jsonb('attendees').$type<string[]>().notNull().default([]),
+    /** Compromisos: [{ id, text, done }]. */
+    commitments: jsonb('commitments')
+      .$type<MeetingCommitment[]>()
+      .notNull()
+      .default([]),
+    authorId: uuid('author_id')
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    unique('meeting_minutes_meeting_unique').on(table.meetingId),
+  ],
+);
+
+export const meetingMinuteRevisions = pgTable('meeting_minute_revisions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  centerId: uuid('center_id')
+    .notNull()
+    .references(() => centers.id),
+  minutesId: uuid('minutes_id')
+    .notNull()
+    .references(() => meetingMinutes.id),
+  topics: text('topics').notNull(),
+  attendees: jsonb('attendees').$type<string[]>().notNull().default([]),
+  commitments: jsonb('commitments')
+    .$type<MeetingCommitment[]>()
+    .notNull()
+    .default([]),
+  editedBy: uuid('edited_by')
+    .notNull()
+    .references(() => users.id),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});

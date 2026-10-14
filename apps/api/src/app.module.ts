@@ -6,6 +6,7 @@ import { DbModule } from './db/db.module';
 import { DirectoryModule } from './directory/directory.module';
 import { EventsModule } from './events/events.module';
 import { HealthModule } from './health/health.module';
+import { MeetingsModule } from './meetings/meetings.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PublicationsModule } from './publications/publications.module';
 import { SurveysModule } from './surveys/surveys.module';
@@ -24,6 +25,7 @@ import { UsersModule } from './users/users.module';
     NotificationsModule,
     PublicationsModule,
     SurveysModule,
+    MeetingsModule,
   ],
 })
 export class AppModule {}

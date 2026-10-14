@@ -10,3 +10,7 @@ try {
 // Pruebas deterministas: el relay de notificaciones no arranca solo; cada
 // spec que lo necesite invoca `relay.tick()` explícitamente.
 process.env.NOTIFICATIONS_RELAY_ENABLED = 'false';
+
+// El planificador de recordatorios de reuniones (M8) tampoco arranca solo:
+// las pruebas invocan `runReminders()` de forma explícita.
+process.env.MEETINGS_SCHEDULER_ENABLED = 'false';
