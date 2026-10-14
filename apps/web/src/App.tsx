@@ -13,7 +13,10 @@ import EventsPage from './pages/EventsPage';
 import GroupDetailPage from './pages/GroupDetailPage';
 import GroupsPage from './pages/GroupsPage';
 import HomePage from './pages/HomePage';
+import InvitedMeetingsPage from './pages/InvitedMeetingsPage';
 import LoginPage from './pages/LoginPage';
+import MeetingDetailPage from './pages/MeetingDetailPage';
+import MeetingsPage from './pages/MeetingsPage';
 import PreferencesPage from './pages/PreferencesPage';
 import PublicationsPage from './pages/PublicationsPage';
 import SurveyAnswerPage from './pages/SurveyAnswerPage';
@@ -33,9 +36,11 @@ type View =
   | 'preferences'
   | 'templates'
   | 'publications'
-  | 'surveys';
+  | 'surveys'
+  | 'meetings'
+  | 'meeting-detail';
 
-const SURVEY_MANAGE_ROLES = ['superadmin', 'coordinacion'];
+const MANAGER_ROLES = ['superadmin', 'coordinacion'];
 
 function App() {
   const [session, setSession] = useState<StoredSession | null>(() =>
@@ -44,6 +49,7 @@ function App() {
   const [view, setView] = useState<View>('home');
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [selectedMeetingId, setSelectedMeetingId] = useState<string | null>(null);
 
   // Valida el token guardado contra la API (expiración o revocación).
   useEffect(() => {
@@ -174,7 +180,7 @@ function App() {
   }
 
   if (view === 'surveys') {
-    return SURVEY_MANAGE_ROLES.includes(session.user.role) ? (
+    return MANAGER_ROLES.includes(session.user.role) ? (
       <SurveysPage
         token={session.accessToken}
         onBack={() => setView('home')}
@@ -183,6 +189,39 @@ function App() {
       <SurveyAnswerPage
         token={session.accessToken}
         onBack={() => setView('home')}
+      />
+    );
+  }
+
+  if (view === 'meetings') {
+    return MANAGER_ROLES.includes(session.user.role) ? (
+      <MeetingsPage
+        token={session.accessToken}
+        onBack={() => setView('home')}
+        onOpen={(meetingId) => {
+          setSelectedMeetingId(meetingId);
+          setView('meeting-detail');
+        }}
+      />
+    ) : (
+      <InvitedMeetingsPage
+        token={session.accessToken}
+        onBack={() => setView('home')}
+        onOpen={(meetingId) => {
+          setSelectedMeetingId(meetingId);
+          setView('meeting-detail');
+        }}
+      />
+    );
+  }
+
+  if (view === 'meeting-detail' && selectedMeetingId) {
+    return (
+      <MeetingDetailPage
+        token={session.accessToken}
+        role={session.user.role}
+        meetingId={selectedMeetingId}
+        onBack={() => setView('meetings')}
       />
     );
   }

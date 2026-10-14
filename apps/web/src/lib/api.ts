@@ -912,3 +912,218 @@ export async function downloadSurveyCsv(
   anchor.click();
   URL.revokeObjectURL(url);
 }
+
+// ---------- Reuniones y agenda (M8) ----------
+
+export interface MeetingInviteeRow {
+  id: string;
+  inviteeType: string;
+  inviteeId: string;
+  rsvpStatus: string;
+  respondedAt: string | null;
+  name: string | null;
+  email: string | null;
+  groupCode: string | null;
+}
+
+export interface MeetingCommitmentRow {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
+export interface MeetingMinutesRow {
+  id: string;
+  meetingId: string;
+  topics: string;
+  attendees: string[];
+  commitments: MeetingCommitmentRow[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MeetingRow {
+  id: string;
+  title: string;
+  description: string;
+  startsAt: string;
+  endsAt: string | null;
+  location: string;
+  status: string;
+  organizerId: string;
+  organizerName: string | null;
+  reminderAt: string | null;
+  reminderSentAt: string | null;
+  createdAt: string;
+  inviteesTotal: number;
+  groupsTotal: number;
+  confirmed: number;
+  pending: number;
+  rejected: number;
+  hasMinutes: boolean;
+}
+
+export interface MeetingDetail {
+  id: string;
+  title: string;
+  description: string;
+  startsAt: string;
+  endsAt: string | null;
+  location: string;
+  status: string;
+  organizerId: string;
+  organizerName: string | null;
+  reminderAt: string | null;
+  reminderSentAt: string | null;
+  createdAt: string;
+  myRsvpStatus: string | null;
+  invitees: MeetingInviteeRow[];
+  minutes: MeetingMinutesRow | null;
+  minutesRevisions: number;
+}
+
+export interface InvitedMeetingRow {
+  id: string;
+  title: string;
+  description: string;
+  startsAt: string;
+  endsAt: string | null;
+  location: string;
+  status: string;
+  myRsvpStatus: string;
+  hasMinutes: boolean;
+}
+
+export interface MeetingInviteeInput {
+  inviteeType: 'usuario' | 'ficha';
+  inviteeId: string;
+}
+
+export function listMeetings(token: string): Promise<MeetingRow[]> {
+  return request<MeetingRow[]>('/meetings', { headers: authHeaders(token) });
+}
+
+export function listInvitedMeetings(
+  token: string,
+): Promise<InvitedMeetingRow[]> {
+  return request<InvitedMeetingRow[]>('/meetings/invited', {
+    headers: authHeaders(token),
+  });
+}
+
+export function getMeeting(
+  token: string,
+  id: string,
+): Promise<MeetingDetail> {
+  return request<MeetingDetail>(`/meetings/${id}`, {
+    headers: authHeaders(token),
+  });
+}
+
+export function createMeeting(
+  token: string,
+  payload: {
+    title: string;
+    description?: string;
+    startsAt: string;
+    endsAt?: string;
+    location: string;
+    reminderAt?: string;
+    invitees: MeetingInviteeInput[];
+  },
+): Promise<
+  MeetingRow & {
+    conflicts: { id: string; title: string; startsAt: string }[];
+    notificationsQueued: number;
+  }
+> {
+  return request('/meetings', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updateMeeting(
+  token: string,
+  id: string,
+  payload: {
+    title?: string;
+    description?: string;
+    startsAt?: string;
+    endsAt?: string;
+    location?: string;
+    reminderAt?: string;
+    invitees?: MeetingInviteeInput[];
+  },
+): Promise<MeetingRow & { rsvpReset: boolean; notificationsQueued: number }> {
+  return request(`/meetings/${id}`, {
+    method: 'PATCH',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+}
+
+export function cancelMeeting(
+  token: string,
+  id: string,
+  reason?: string,
+): Promise<MeetingRow & { notificationsQueued: number }> {
+  return request(`/meetings/${id}/cancel`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(reason ? { reason } : {}),
+  });
+}
+
+export function completeMeeting(
+  token: string,
+  id: string,
+): Promise<MeetingRow> {
+  return request(`/meetings/${id}/complete`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({}),
+  });
+}
+
+export function rsvpMeeting(
+  token: string,
+  id: string,
+  status: 'confirmado' | 'rechazado',
+): Promise<MeetingInviteeRow> {
+  return request(`/meetings/${id}/rsvp`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ status }),
+  });
+}
+
+export function upsertMeetingMinutes(
+  token: string,
+  id: string,
+  payload: {
+    topics: string;
+    attendees: string[];
+    commitments: { id?: string; text: string }[];
+  },
+): Promise<MeetingMinutesRow & { notificationsQueued: number }> {
+  return request(`/meetings/${id}/minutes`, {
+    method: 'PUT',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updateMeetingCommitment(
+  token: string,
+  id: string,
+  commitmentId: string,
+  done: boolean,
+): Promise<MeetingMinutesRow> {
+  return request(`/meetings/${id}/minutes/commitments/${commitmentId}`, {
+    method: 'PATCH',
+    headers: authHeaders(token),
+    body: JSON.stringify({ done }),
+  });
+}

@@ -12,7 +12,8 @@ interface Props {
       | 'preferences'
       | 'templates'
       | 'publications'
-      | 'surveys',
+      | 'surveys'
+      | 'meetings',
   ) => void;
 }
 
@@ -56,6 +57,13 @@ export default function HomePage({ user, onLogout, onNavigate }: Props) {
             onClick={() => onNavigate('surveys')}
           >
             Encuestas
+          </button>
+          <button
+            className="btn btn--secondary"
+            type="button"
+            onClick={() => onNavigate('meetings')}
+          >
+            Reuniones
           </button>
           {EVENTS_ROLES.includes(user.role) ? (
             <>
