@@ -16,6 +16,8 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import PreferencesPage from './pages/PreferencesPage';
 import PublicationsPage from './pages/PublicationsPage';
+import SurveyAnswerPage from './pages/SurveyAnswerPage';
+import SurveysPage from './pages/SurveysPage';
 import TemplatesPage from './pages/TemplatesPage';
 import UsersPage from './pages/UsersPage';
 
@@ -30,7 +32,10 @@ type View =
   | 'delivery'
   | 'preferences'
   | 'templates'
-  | 'publications';
+  | 'publications'
+  | 'surveys';
+
+const SURVEY_MANAGE_ROLES = ['superadmin', 'coordinacion'];
 
 function App() {
   const [session, setSession] = useState<StoredSession | null>(() =>
@@ -163,6 +168,20 @@ function App() {
       <PublicationsPage
         token={session.accessToken}
         role={session.user.role}
+        onBack={() => setView('home')}
+      />
+    );
+  }
+
+  if (view === 'surveys') {
+    return SURVEY_MANAGE_ROLES.includes(session.user.role) ? (
+      <SurveysPage
+        token={session.accessToken}
+        onBack={() => setView('home')}
+      />
+    ) : (
+      <SurveyAnswerPage
+        token={session.accessToken}
         onBack={() => setView('home')}
       />
     );

@@ -713,3 +713,202 @@ export function addPublicationMetric(
     body: JSON.stringify({ event }),
   });
 }
+
+// ---------- Encuestas (M7) ----------
+
+export interface SurveySegment {
+  segmentType: string;
+  segmentValue: string;
+}
+
+export interface QuestionOptionRow {
+  id: string;
+  label: string;
+}
+
+export interface SurveyQuestionRow {
+  id: string;
+  text: string;
+  type: string;
+  required: boolean;
+  scaleMin: number | null;
+  scaleMax: number | null;
+  options: QuestionOptionRow[];
+}
+
+export interface SurveyRow {
+  id: string;
+  title: string;
+  description: string;
+  anonymous: boolean;
+  status: string;
+  minResponses: number;
+  publishedAt: string | null;
+  createdAt: string;
+  questionCount: number;
+  totalResponses: number;
+  segments: SurveySegment[];
+}
+
+export interface SurveyDetail {
+  id: string;
+  title: string;
+  description: string;
+  anonymous: boolean;
+  status: string;
+  minResponses: number;
+  publishedAt: string | null;
+  totalResponses: number;
+  segments: SurveySegment[];
+  questions: SurveyQuestionRow[];
+}
+
+export interface QuestionInput {
+  text: string;
+  type: 'unica' | 'multiple' | 'escala';
+  required?: boolean;
+  options?: { label: string }[];
+  scaleMin?: number;
+  scaleMax?: number;
+}
+
+export interface AvailableSurvey {
+  id: string;
+  title: string;
+  description: string;
+  anonymous: boolean;
+  publishedAt: string | null;
+  answered: boolean;
+  questions: SurveyQuestionRow[];
+}
+
+export interface ResultQuestion {
+  id: string;
+  text: string;
+  type: string;
+  required: boolean;
+  respondents: number;
+  scaleMin: number | null;
+  scaleMax: number | null;
+  average: number | null;
+  distribution: { value: number; count: number }[];
+  options: {
+    optionId: string;
+    label: string;
+    count: number;
+    percentage: number;
+  }[];
+}
+
+export interface ResultSegment {
+  groupId: string;
+  groupCode: string | null;
+  journey: string | null;
+  responses: number;
+  questions: ResultQuestion[];
+}
+
+export interface SurveyResults {
+  survey: {
+    id: string;
+    title: string;
+    description: string;
+    anonymous: boolean;
+    status: string;
+    minResponses: number;
+    publishedAt: string | null;
+  };
+  totalResponses: number;
+  questions: ResultQuestion[];
+  segments: ResultSegment[];
+  hiddenSegments: number;
+}
+
+export function listSurveys(token: string): Promise<SurveyRow[]> {
+  return request<SurveyRow[]>('/surveys', { headers: authHeaders(token) });
+}
+
+export function getSurvey(token: string, id: string): Promise<SurveyDetail> {
+  return request<SurveyDetail>(`/surveys/${id}`, {
+    headers: authHeaders(token),
+  });
+}
+
+export function createSurvey(
+  token: string,
+  payload: {
+    title: string;
+    description: string;
+    anonymous: boolean;
+    minResponses?: number;
+    questions: QuestionInput[];
+    segments?: SurveySegment[];
+  },
+): Promise<SurveyDetail> {
+  return request<SurveyDetail>('/surveys', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+}
+
+export function publishSurvey(
+  token: string,
+  id: string,
+): Promise<SurveyRow & { recipients: number; notificationsQueued: number }> {
+  return request(`/surveys/${id}/publish`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({}),
+  });
+}
+
+export function listAvailableSurveys(token: string): Promise<AvailableSurvey[]> {
+  return request<AvailableSurvey[]>('/surveys/available', {
+    headers: authHeaders(token),
+  });
+}
+
+export function submitSurveyResponse(
+  token: string,
+  id: string,
+  answers: { questionId: string; optionIds?: string[]; scaleValue?: number }[],
+): Promise<{ ok: boolean; anonymous: boolean }> {
+  return request(`/surveys/${id}/responses`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ answers }),
+  });
+}
+
+export function getSurveyResults(
+  token: string,
+  id: string,
+): Promise<SurveyResults> {
+  return request<SurveyResults>(`/surveys/${id}/results`, {
+    headers: authHeaders(token),
+  });
+}
+
+/** CU-29 FL-3: descarga el CSV agregado respetando el umbral de anonimato. */
+export async function downloadSurveyCsv(
+  token: string,
+  id: string,
+): Promise<void> {
+  const res = await fetch(`${API_URL}/surveys/${id}/results/export`, {
+    headers: authHeaders(token),
+  });
+  if (!res.ok) {
+    throw new ApiError('No se pudo exportar el CSV de resultados.');
+  }
+  const disposition = res.headers.get('content-disposition') ?? '';
+  const filename =
+    /filename="([^"]+)"/.exec(disposition)?.[1] ?? `encuesta-${id.slice(0, 8)}.csv`;
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
